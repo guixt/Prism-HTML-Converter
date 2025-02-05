@@ -27,8 +27,10 @@ Partial Class Form1
         Me.btnInsertScripts = New System.Windows.Forms.Button()
         Me.txtSelectedCode = New System.Windows.Forms.TextBox()
         Me.btnReplaceCode = New System.Windows.Forms.Button()
-        Me.log = New System.Windows.Forms.RichTextBox()
+        Me.rtbLog = New System.Windows.Forms.RichTextBox()
         Me.WebView = New Microsoft.Web.WebView2.WinForms.WebView2()
+        Me.btnRestore = New System.Windows.Forms.Button()
+        Me.cbCodeType = New System.Windows.Forms.ComboBox()
         CType(Me.WebView, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -37,7 +39,7 @@ Partial Class Form1
         Me.lbFiles.FormattingEnabled = True
         Me.lbFiles.Location = New System.Drawing.Point(12, 12)
         Me.lbFiles.Name = "lbFiles"
-        Me.lbFiles.Size = New System.Drawing.Size(216, 407)
+        Me.lbFiles.Size = New System.Drawing.Size(914, 407)
         Me.lbFiles.TabIndex = 0
         '
         'btnSelectFolder
@@ -75,32 +77,52 @@ Partial Class Form1
         Me.btnReplaceCode.Text = "Replace code"
         Me.btnReplaceCode.UseVisualStyleBackColor = True
         '
-        'log
+        'rtbLog
         '
-        Me.log.Location = New System.Drawing.Point(261, 521)
-        Me.log.Name = "log"
-        Me.log.Size = New System.Drawing.Size(899, 119)
-        Me.log.TabIndex = 6
-        Me.log.Text = ""
+        Me.rtbLog.Font = New System.Drawing.Font("Rockwell", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.rtbLog.Location = New System.Drawing.Point(944, 631)
+        Me.rtbLog.Name = "rtbLog"
+        Me.rtbLog.Size = New System.Drawing.Size(899, 226)
+        Me.rtbLog.TabIndex = 6
+        Me.rtbLog.Text = ""
         '
         'WebView
         '
         Me.WebView.AllowExternalDrop = True
         Me.WebView.CreationProperties = Nothing
         Me.WebView.DefaultBackgroundColor = System.Drawing.Color.White
-        Me.WebView.Location = New System.Drawing.Point(249, 13)
+        Me.WebView.Location = New System.Drawing.Point(932, 12)
         Me.WebView.Name = "WebView"
         Me.WebView.Size = New System.Drawing.Size(911, 502)
         Me.WebView.TabIndex = 7
         Me.WebView.ZoomFactor = 1.0R
         '
+        'btnRestore
+        '
+        Me.btnRestore.Location = New System.Drawing.Point(734, 425)
+        Me.btnRestore.Name = "btnRestore"
+        Me.btnRestore.Size = New System.Drawing.Size(192, 23)
+        Me.btnRestore.TabIndex = 8
+        Me.btnRestore.Text = "Backup wiederherstellen"
+        Me.btnRestore.UseVisualStyleBackColor = True
+        '
+        'cbCodeType
+        '
+        Me.cbCodeType.FormattingEnabled = True
+        Me.cbCodeType.Location = New System.Drawing.Point(242, 456)
+        Me.cbCodeType.Name = "cbCodeType"
+        Me.cbCodeType.Size = New System.Drawing.Size(185, 21)
+        Me.cbCodeType.TabIndex = 9
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(1172, 652)
+        Me.ClientSize = New System.Drawing.Size(1855, 869)
+        Me.Controls.Add(Me.cbCodeType)
+        Me.Controls.Add(Me.btnRestore)
         Me.Controls.Add(Me.WebView)
-        Me.Controls.Add(Me.log)
+        Me.Controls.Add(Me.rtbLog)
         Me.Controls.Add(Me.btnReplaceCode)
         Me.Controls.Add(Me.txtSelectedCode)
         Me.Controls.Add(Me.btnInsertScripts)
@@ -119,6 +141,8 @@ Partial Class Form1
     Friend WithEvents btnInsertScripts As Button
     Friend WithEvents txtSelectedCode As TextBox
     Friend WithEvents btnReplaceCode As Button
-    Friend WithEvents log As RichTextBox
+    Friend WithEvents rtbLog As RichTextBox
     Friend WithEvents WebView As Microsoft.Web.WebView2.WinForms.WebView2
+    Friend WithEvents btnRestore As Button
+    Friend WithEvents cbCodeType As ComboBox
 End Class
