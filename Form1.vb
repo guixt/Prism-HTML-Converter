@@ -13,7 +13,7 @@ Public Class Form1
 
 
         ' Hier kannst du noch Initialisierungen vornehmen, falls nötig.
-        LoadFilesFromDirectory("D:\Synactive\Work in Progress\Code Highlighting mit Prism\tutor_d")
+        LoadFilesFromDirectory("D:\Synactive\Work in Progress\Synactive Homepage\docu_d\")
 
         LogMessage("Herzlich Willkommen!")
 

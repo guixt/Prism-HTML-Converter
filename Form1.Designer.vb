@@ -39,14 +39,14 @@ Partial Class Form1
         Me.lbFiles.FormattingEnabled = True
         Me.lbFiles.Location = New System.Drawing.Point(12, 12)
         Me.lbFiles.Name = "lbFiles"
-        Me.lbFiles.Size = New System.Drawing.Size(914, 407)
+        Me.lbFiles.Size = New System.Drawing.Size(486, 407)
         Me.lbFiles.TabIndex = 0
         '
         'btnSelectFolder
         '
         Me.btnSelectFolder.Location = New System.Drawing.Point(12, 425)
         Me.btnSelectFolder.Name = "btnSelectFolder"
-        Me.btnSelectFolder.Size = New System.Drawing.Size(216, 23)
+        Me.btnSelectFolder.Size = New System.Drawing.Size(210, 23)
         Me.btnSelectFolder.TabIndex = 1
         Me.btnSelectFolder.Text = "Verzeichnis wählen"
         Me.btnSelectFolder.UseVisualStyleBackColor = True
@@ -80,9 +80,9 @@ Partial Class Form1
         'rtbLog
         '
         Me.rtbLog.Font = New System.Drawing.Font("Rockwell", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.rtbLog.Location = New System.Drawing.Point(944, 631)
+        Me.rtbLog.Location = New System.Drawing.Point(234, 483)
         Me.rtbLog.Name = "rtbLog"
-        Me.rtbLog.Size = New System.Drawing.Size(899, 226)
+        Me.rtbLog.Size = New System.Drawing.Size(1173, 157)
         Me.rtbLog.TabIndex = 6
         Me.rtbLog.Text = ""
         '
@@ -91,15 +91,15 @@ Partial Class Form1
         Me.WebView.AllowExternalDrop = True
         Me.WebView.CreationProperties = Nothing
         Me.WebView.DefaultBackgroundColor = System.Drawing.Color.White
-        Me.WebView.Location = New System.Drawing.Point(932, 12)
+        Me.WebView.Location = New System.Drawing.Point(504, 12)
         Me.WebView.Name = "WebView"
-        Me.WebView.Size = New System.Drawing.Size(911, 502)
+        Me.WebView.Size = New System.Drawing.Size(903, 407)
         Me.WebView.TabIndex = 7
         Me.WebView.ZoomFactor = 1.0R
         '
         'btnRestore
         '
-        Me.btnRestore.Location = New System.Drawing.Point(734, 425)
+        Me.btnRestore.Location = New System.Drawing.Point(1215, 425)
         Me.btnRestore.Name = "btnRestore"
         Me.btnRestore.Size = New System.Drawing.Size(192, 23)
         Me.btnRestore.TabIndex = 8
@@ -109,7 +109,7 @@ Partial Class Form1
         'cbCodeType
         '
         Me.cbCodeType.FormattingEnabled = True
-        Me.cbCodeType.Location = New System.Drawing.Point(242, 456)
+        Me.cbCodeType.Location = New System.Drawing.Point(234, 454)
         Me.cbCodeType.Name = "cbCodeType"
         Me.cbCodeType.Size = New System.Drawing.Size(185, 21)
         Me.cbCodeType.TabIndex = 9
@@ -118,7 +118,7 @@ Partial Class Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(1855, 869)
+        Me.ClientSize = New System.Drawing.Size(1419, 650)
         Me.Controls.Add(Me.cbCodeType)
         Me.Controls.Add(Me.btnRestore)
         Me.Controls.Add(Me.WebView)
