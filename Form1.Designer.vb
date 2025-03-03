@@ -41,6 +41,7 @@ Partial Class Form1
         Me.replace_guixt = New System.Windows.Forms.Button()
         Me.replace_vbnet = New System.Windows.Forms.Button()
         Me.del_selected_element = New System.Windows.Forms.Button()
+        Me.ExpandSelection = New System.Windows.Forms.Button()
         CType(Me.WebView, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.WebView_2, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
@@ -212,11 +213,21 @@ Partial Class Form1
         Me.del_selected_element.Text = "Delete selected lement"
         Me.del_selected_element.UseVisualStyleBackColor = True
         '
+        'ExpandSelection
+        '
+        Me.ExpandSelection.Location = New System.Drawing.Point(765, 703)
+        Me.ExpandSelection.Name = "ExpandSelection"
+        Me.ExpandSelection.Size = New System.Drawing.Size(164, 23)
+        Me.ExpandSelection.TabIndex = 20
+        Me.ExpandSelection.Text = "Expand selection"
+        Me.ExpandSelection.UseVisualStyleBackColor = True
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1784, 828)
+        Me.Controls.Add(Me.ExpandSelection)
         Me.Controls.Add(Me.del_selected_element)
         Me.Controls.Add(Me.replace_vbnet)
         Me.Controls.Add(Me.replace_guixt)
@@ -264,4 +275,5 @@ Partial Class Form1
     Friend WithEvents replace_guixt As Button
     Friend WithEvents replace_vbnet As Button
     Friend WithEvents del_selected_element As Button
+    Friend WithEvents ExpandSelection As Button
 End Class

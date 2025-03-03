@@ -7,6 +7,7 @@ Imports Microsoft.Web.WebView2.WinForms
 Imports System.Windows.Forms.VisualStyles.VisualStyleElement
 Imports Microsoft.Web.WebView2.Core
 Imports System.Text
+Imports System.Net
 
 
 Public Class Form1
@@ -267,6 +268,9 @@ Public Class Form1
         Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
         Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
 
+        ' 5. Entferne HTML-Entities und ersetze sie durch normale Zeichen
+        modifiedHtml = WebUtility.HtmlDecode(modifiedHtml)
+
         ' 5. Speichere das aktualisierte HTML in der Datei:
         File.WriteAllText(filePath, modifiedHtml)
         LogMessage("DOM-Knoten wurde direkt per JS ersetzt und die Datei aktualisiert.")
@@ -391,7 +395,7 @@ Public Class Form1
 
         ' 2. Erzeuge den neuen PrismJS-Block basierend auf der Selektion:
         Dim language As String = cbCodeType.SelectedItem.ToString()
-        Dim newBlock As String = "<div name=""prism_placeholder""></div>"
+        Dim newBlock As String = "<div name=""prism_placeholder"">Prism Platzhalter</div>"
 
         ' 3. Serialisiere den neuen Block zur Übergabe in JavaScript:
         Dim newBlockJson As String = JsonConvert.SerializeObject(newBlock)
@@ -412,6 +416,10 @@ Public Class Form1
 
         Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
         Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
+
+        ' 5. Entferne HTML-Entities und ersetze sie durch normale Zeichen
+        modifiedHtml = WebUtility.HtmlDecode(modifiedHtml)
+
 
         ' 5. Speichere das aktualisierte HTML in der Datei:
         File.WriteAllText(lbFiles.SelectedItem.ToString(), modifiedHtml)
@@ -471,6 +479,9 @@ Public Class Form1
         ' 6. JavaScript ausführen, um das HTML zu aktualisieren
         Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
         Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
+
+        ' 5. Entferne HTML-Entities und ersetze sie durch normale Zeichen
+        modifiedHtml = WebUtility.HtmlDecode(modifiedHtml)
 
         ' 7. Speichern des aktualisierten HTML-Codes
         File.WriteAllText(filepath, modifiedHtml)
@@ -574,6 +585,117 @@ Public Class Form1
 
     Private Async Sub del_selected_element_Click(sender As Object, e As EventArgs)
 
+    End Sub
+
+    Private Async Sub ExpandSelection_Click(sender As Object, e As EventArgs) Handles ExpandSelection.Click
+        ' JavaScript-Code zum Hochhangeln der Selektion
+        Dim script As String = "
+    (function() {
+        var sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+            var range = sel.getRangeAt(0);
+            var container = range.commonAncestorContainer;
+
+            // Falls es ein Textknoten ist, nimm das übergeordnete Element
+            if (container.nodeType === 3) { 
+                container = container.parentNode; 
+            }
+
+            // Falls es schon ein Blockelement ist, noch weiter nach oben
+            if (container.parentElement) {
+                container = container.parentElement;
+            }
+
+            // Markiere das neue Element
+            var newRange = document.createRange();
+            newRange.selectNode(container);
+            sel.removeAllRanges();
+            sel.addRange(newRange);
+
+            return JSON.stringify(container.outerHTML); // Zur Überprüfung
+        }
+        return '';
+    })();"
+
+        ' Führe den JavaScript-Code aus
+        Dim resultJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(script)
+
+        ' Zeige im Log an, welches Element zuletzt selektiert wurde
+        Dim expandedSelection As String = JsonConvert.DeserializeObject(Of String)(resultJson)
+        If String.IsNullOrEmpty(expandedSelection) Then
+            LogMessage("Keine gültige Selektion gefunden.")
+        Else
+            LogMessage("Selektion erweitert.")
+        End If
+    End Sub
+
+    Private Async Sub del_selected_element_Click_1(sender As Object, e As EventArgs) Handles del_selected_element.Click
+        Dim filepath = lbFiles.SelectedItem.ToString()
+        CreateBackup(filepath)
+
+
+        ' 1. Ermittele den selektierten DOM-Knoten (outerHTML und Text) per JavaScript:
+        Dim script As String = "
+      (function() {
+          var sel = window.getSelection();
+          if (sel.rangeCount > 0) {
+              var container = sel.getRangeAt(0).commonAncestorContainer;
+              if (container.nodeType === 3) { 
+                  container = container.parentNode; 
+              }
+              return JSON.stringify({ outer: container.outerHTML, text: sel.toString() });
+          }
+          return JSON.stringify({ outer: '', text: '' });
+      })();"
+
+
+
+        Dim resultJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(script)
+        ' Zuerst den inneren JSON-String extrahieren, da WebView2-Ergebnis doppelt kodiert sein kann:
+        Dim innerJson As String = JsonConvert.DeserializeObject(Of String)(resultJson)
+        Dim selectionInfo As SelectionInfo = JsonConvert.DeserializeObject(Of SelectionInfo)(innerJson)
+
+        If String.IsNullOrEmpty(selectionInfo.outer) OrElse String.IsNullOrEmpty(selectionInfo.text) Then
+            LogMessage("Keine gültige Selektion gefunden.")
+            Return
+        End If
+
+        ' 2. Erzeuge den neuen PrismJS-Block basierend auf der Selektion:
+        Dim language As String = cbCodeType.SelectedItem.ToString()
+
+        ' Nur Element löschen
+        Dim newBlock As String = ""
+
+        ' 3. Serialisiere den neuen Block zur Übergabe in JavaScript:
+        Dim newBlockJson As String = JsonConvert.SerializeObject(newBlock)
+
+        ' 4. Führe JavaScript aus, das den selektierten DOM-Knoten durch den neuen Block ersetzt:
+        Dim jsCode As String = "
+    (function(newHtml) {
+        var sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+            var range = sel.getRangeAt(0);
+            range.deleteContents(); // Entfernt nur den markierten Text
+            var fragment = document.createRange().createContextualFragment(newHtml);
+            range.insertNode(fragment);
+            return document.documentElement.outerHTML;
+        }
+        return '';
+    })(" & newBlockJson & ");"
+
+        Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
+        Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
+
+        ' 5. Entferne HTML-Entities und ersetze sie durch normale Zeichen
+        modifiedHtml = WebUtility.HtmlDecode(modifiedHtml)
+
+        ' 6. Speichere das aktualisierte HTML in der Datei:
+        File.WriteAllText(lbFiles.SelectedItem.ToString(), modifiedHtml)
+        LogMessage("Elemtn wurde entfernt.")
+
+
+        WebView_2.Reload()
+        WebView_2.Refresh()
     End Sub
 End Class
 
