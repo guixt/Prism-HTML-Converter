@@ -34,6 +34,8 @@ Partial Class Form1
         Me.basepath = New System.Windows.Forms.TextBox()
         Me.ProgressBar1 = New System.Windows.Forms.ProgressBar()
         Me.WebView_2 = New Microsoft.Web.WebView2.WinForms.WebView2()
+        Me.vbopen = New System.Windows.Forms.Button()
+        Me.repace_simple = New System.Windows.Forms.Button()
         CType(Me.WebView, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.WebView_2, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
@@ -74,7 +76,7 @@ Partial Class Form1
         '
         'btnReplaceCode
         '
-        Me.btnReplaceCode.Location = New System.Drawing.Point(120, 454)
+        Me.btnReplaceCode.Location = New System.Drawing.Point(385, 452)
         Me.btnReplaceCode.Name = "btnReplaceCode"
         Me.btnReplaceCode.Size = New System.Drawing.Size(102, 23)
         Me.btnReplaceCode.TabIndex = 5
@@ -113,7 +115,7 @@ Partial Class Form1
         'cbCodeType
         '
         Me.cbCodeType.FormattingEnabled = True
-        Me.cbCodeType.Location = New System.Drawing.Point(234, 454)
+        Me.cbCodeType.Location = New System.Drawing.Point(493, 454)
         Me.cbCodeType.Name = "cbCodeType"
         Me.cbCodeType.Size = New System.Drawing.Size(185, 21)
         Me.cbCodeType.TabIndex = 9
@@ -143,11 +145,31 @@ Partial Class Form1
         Me.WebView_2.TabIndex = 12
         Me.WebView_2.ZoomFactor = 1.0R
         '
+        'vbopen
+        '
+        Me.vbopen.Location = New System.Drawing.Point(120, 454)
+        Me.vbopen.Name = "vbopen"
+        Me.vbopen.Size = New System.Drawing.Size(108, 23)
+        Me.vbopen.TabIndex = 13
+        Me.vbopen.Text = "in VS Code öffnen"
+        Me.vbopen.UseVisualStyleBackColor = True
+        '
+        'repace_simple
+        '
+        Me.repace_simple.Location = New System.Drawing.Point(234, 454)
+        Me.repace_simple.Name = "repace_simple"
+        Me.repace_simple.Size = New System.Drawing.Size(108, 23)
+        Me.repace_simple.TabIndex = 14
+        Me.repace_simple.Text = "Platzhalter einfügen"
+        Me.repace_simple.UseVisualStyleBackColor = True
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1784, 828)
+        Me.Controls.Add(Me.repace_simple)
+        Me.Controls.Add(Me.vbopen)
         Me.Controls.Add(Me.WebView_2)
         Me.Controls.Add(Me.ProgressBar1)
         Me.Controls.Add(Me.basepath)
@@ -181,4 +203,6 @@ Partial Class Form1
     Friend WithEvents basepath As TextBox
     Friend WithEvents ProgressBar1 As ProgressBar
     Friend WithEvents WebView_2 As Microsoft.Web.WebView2.WinForms.WebView2
+    Friend WithEvents vbopen As Button
+    Friend WithEvents repace_simple As Button
 End Class

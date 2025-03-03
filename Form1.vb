@@ -246,19 +246,35 @@ Public Class Form1
             ' Ohne hilite.me Kommentar: Ersetze den selektierten DOM-Knoten per JavaScript:
             Dim newBlockJson As String = JsonConvert.SerializeObject(newBlock)
             Dim jsCode As String = "
-         (function(newHtml) {
-             var sel = window.getSelection();
-             if (sel.rangeCount > 0) {
-                 var container = sel.getRangeAt(0).commonAncestorContainer;
-                 if (container.nodeType === 3) { 
-                     container = container.parentNode; 
-                 }
-                 var fragment = document.createRange().createContextualFragment(newHtml);
-                 container.parentNode.replaceChild(fragment, container);
-                 return document.documentElement.outerHTML;
-             }
-             return '';
-         })(" & newBlockJson & ");"
+        (function(newHtml) {
+    var sel = window.getSelection();
+    if (sel.rangeCount > 0) {
+        var range = sel.getRangeAt(0);
+        var selectedText = sel.toString().trim();
+
+        // Sicherstellen, dass etwas markiert wurde
+        if (selectedText.length === 0) {
+            return '';
+        }
+
+        var container = range.commonAncestorContainer;
+
+        // Falls der Knoten ein Text-Knoten ist, zum übergeordneten Element wechseln
+        if (container.nodeType === 3) {
+            container = container.parentNode;
+        }
+
+        // Nur den selektierten Text ersetzen, nicht das ganze Element
+        var htmlContent = container.innerHTML;
+        var newHtmlContent = htmlContent.replace(selectedText, newHtml);
+
+        container.innerHTML = newHtmlContent;
+
+        return document.documentElement.outerHTML;
+    }
+    return '';
+})(" + newBlockJson + "); 
+"
 
             Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
             Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
@@ -319,6 +335,110 @@ Public Class Form1
 
 
     End Sub
+
+    Private Sub vbopen_Click(sender As Object, e As EventArgs) Handles vbopen.Click
+
+
+        Try
+            ' Pfad zur VS Code ausführbaren Datei (falls nicht in PATH-Umgebung)
+            Dim vsCodePath As String = "C:\Users\Pascal\AppData\Local\Programs\Microsoft VS Code\Code.exe"
+
+            ' Falls VS Code im System-PATH ist, reicht "code" als Befehl
+            If Not System.IO.File.Exists(vsCodePath) Then
+                vsCodePath = "code" ' Falls VS Code im PATH ist
+            End If
+
+            Dim filepath = lbFiles.SelectedItem.ToString()
+
+
+            ' Prüfen, ob die Datei existiert
+            If System.IO.File.Exists(filepath) Then
+                ' Startet VS Code mit der Datei
+                Process.Start(vsCodePath, """" & filepath & """")
+            Else
+                MessageBox.Show("Datei nicht gefunden: " & filepath, "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End If
+
+        Catch ex As Exception
+            MessageBox.Show("Fehler beim Öffnen der Datei in VS Code: " & ex.Message, "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+
+
+    End Sub
+
+    Private Async Sub repace_simple_Click(sender As Object, e As EventArgs) Handles repace_simple.Click
+
+        ' JavaScript zum Abrufen des markierten Bereichs
+        Dim script As String = "
+    (function() {
+        var sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+            var range = sel.getRangeAt(0);
+            var container = range.commonAncestorContainer;
+
+            // Falls der Knoten ein Textknoten ist, wähle das übergeordnete Element
+            if (container.nodeType === 3) { 
+                container = container.parentNode; 
+            }
+
+            return JSON.stringify({ outer: container.outerHTML, text: sel.toString() });
+        }
+        return JSON.stringify({ outer: '', text: '' });
+    })();"
+
+        ' JavaScript-Ergebnis abrufen
+        Dim resultJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(script)
+        Dim innerJson As String = JsonConvert.DeserializeObject(Of String)(resultJson)
+        Dim selectionInfo As SelectionInfo = JsonConvert.DeserializeObject(Of SelectionInfo)(innerJson)
+
+        ' Falls keine gültige Auswahl vorliegt, abbrechen
+        If String.IsNullOrEmpty(selectionInfo.outer) OrElse String.IsNullOrEmpty(selectionInfo.text) Then
+            LogMessage("Keine gültige Selektion gefunden.")
+            Return
+        End If
+
+        ' Ersetzungsblock definieren
+        Dim newBlock As String = "<div name=""prism_placeholder""></div>"
+
+        ' JavaScript-Code zum direkten Ersetzen des selektierten Bereichs
+        Dim newBlockJson As String = JsonConvert.SerializeObject(newBlock)
+        Dim jsCode As String = "
+    (function(newHtml) {
+        var sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+            var range = sel.getRangeAt(0);
+            var selectedText = sel.toString().trim();
+
+            if (selectedText.length === 0) {
+                return '';
+            }
+
+            var container = range.commonAncestorContainer;
+            if (container.nodeType === 3) {
+                container = container.parentNode;
+            }
+
+            // Nur den selektierten Text ersetzen
+            container.innerHTML = container.innerHTML.replace(selectedText, newHtml);
+
+            return document.documentElement.outerHTML;
+        }
+        return '';
+    })(" & newBlockJson & ");"
+
+        ' JavaScript ausführen und verändertes HTML abrufen
+        Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
+        Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
+
+        ' Datei speichern
+        File.WriteAllText(lbFiles.SelectedItem.ToString(), modifiedHtml)
+        LogMessage("Markierter Bereich wurde durch Prism Placeholder ersetzt.")
+
+        ' Vorschau aktualisieren
+        WebView_2.Reload()
+        WebView_2.Refresh()
+    End Sub
+
 
 
 End Class
