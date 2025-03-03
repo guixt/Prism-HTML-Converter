@@ -189,8 +189,8 @@ Public Class Form1
           }
           return JSON.stringify({ outer: '', text: '' });
       })();"
-
         Dim resultJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(script)
+        ' Zuerst den inneren JSON-String extrahieren, da WebView2-Ergebnis doppelt kodiert sein kann:
         Dim innerJson As String = JsonConvert.DeserializeObject(Of String)(resultJson)
         Dim selectionInfo As SelectionInfo = JsonConvert.DeserializeObject(Of SelectionInfo)(innerJson)
 
@@ -203,91 +203,35 @@ Public Class Form1
         Dim language As String = cbCodeType.SelectedItem.ToString()
         Dim newBlock As String = GetPrismFormattedHtml(language, selectionInfo.text, "Kopieren")
 
-        ' 3. Lade den HTML-Inhalt der Datei:
-        Dim content As String = File.ReadAllText(filePath)
+        ' 3. Serialisiere den neuen Block zur Übergabe in JavaScript:
+        Dim newBlockJson As String = JsonConvert.SerializeObject(newBlock)
 
-        If content.Contains("<!-- HTML generated using hilite.me -->") Then
-            ' Falls der hilite.me Kommentar gefunden wird, ersetze den folgenden <div>-Bereich:
-            Dim doc As New HtmlAgilityPack.HtmlDocument()
-            doc.LoadHtml(content)
-            Dim commentNode As HtmlAgilityPack.HtmlNode = doc.DocumentNode.SelectSingleNode("//comment()[contains(.,'HTML generated using hilite.me')]")
+        ' 4. Führe JavaScript aus, das den selektierten DOM-Knoten durch den neuen Block ersetzt:
+        Dim jsCode As String = "
+      (function(newHtml) {
+          var sel = window.getSelection();
+          if (sel.rangeCount > 0) {
+              var container = sel.getRangeAt(0).commonAncestorContainer;
+              if (container.nodeType === 3) { 
+                  container = container.parentNode; 
+              }
+              var fragment = document.createRange().createContextualFragment(newHtml);
+              container.parentNode.replaceChild(fragment, container);
+              return document.documentElement.outerHTML;
+          }
+          return '';
+      })(" & newBlockJson & ");"
 
-            If commentNode IsNot Nothing Then
-                Dim divNode As HtmlAgilityPack.HtmlNode = commentNode.NextSibling
-                ' Überspringe Whitespace-Textknoten:
-                While divNode IsNot Nothing AndAlso divNode.NodeType <> HtmlAgilityPack.HtmlNodeType.Element
-                    divNode = divNode.NextSibling
-                End While
+        Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
+        Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
 
-                If divNode IsNot Nothing AndAlso divNode.Name.ToLower() = "div" Then
-                    ' 4. Füge den PrismJS-Code in einen <div>-Container ein:
-                    Dim snippet As String = "<div>" & newBlock & "</div>"
-                    Dim fragmentDoc As New HtmlAgilityPack.HtmlDocument()
-                    fragmentDoc.LoadHtml(snippet)
-                    Dim containerNode As HtmlAgilityPack.HtmlNode = fragmentDoc.DocumentNode.SelectSingleNode("//div[@id='replaceContainer']")
+        ' 5. Speichere das aktualisierte HTML in der Datei:
+        File.WriteAllText(filePath, modifiedHtml)
+        LogMessage("DOM-Knoten wurde direkt per JS ersetzt und die Datei aktualisiert.")
 
-                    If containerNode IsNot Nothing Then
-                        ' Ersetze den ursprünglichen <div>-Knoten durch den neuen Container
-                        divNode.ParentNode.ReplaceChild(containerNode, divNode)
-                        ' Entferne den Kommentar, damit die Ersetzung markiert ist
-                        commentNode.ParentNode.RemoveChild(commentNode)
-                        doc.Save(filePath)
-                        LogMessage("Bereich mit hilite.me Kommentar erfolgreich ersetzt und Kommentar gelöscht.")
-                    Else
-                        LogMessage("Fehler beim Erstellen des neuen Knotens.")
-                    End If
-                Else
-                    LogMessage("Kein <div> nach hilite.me Kommentar gefunden.")
-                End If
-            Else
-                LogMessage("Hilite.me Kommentar nicht gefunden.")
-            End If
-        Else
-            ' Ohne hilite.me Kommentar: Ersetze den selektierten DOM-Knoten per JavaScript:
-            Dim newBlockJson As String = JsonConvert.SerializeObject(newBlock)
-            Dim jsCode As String = "
-        (function(newHtml) {
-    var sel = window.getSelection();
-    if (sel.rangeCount > 0) {
-        var range = sel.getRangeAt(0);
-        var selectedText = sel.toString().trim();
 
-        // Sicherstellen, dass etwas markiert wurde
-        if (selectedText.length === 0) {
-            return '';
-        }
-
-        var container = range.commonAncestorContainer;
-
-        // Falls der Knoten ein Text-Knoten ist, zum übergeordneten Element wechseln
-        if (container.nodeType === 3) {
-            container = container.parentNode;
-        }
-
-        // Nur den selektierten Text ersetzen, nicht das ganze Element
-        var htmlContent = container.innerHTML;
-        var newHtmlContent = htmlContent.replace(selectedText, newHtml);
-
-        container.innerHTML = newHtmlContent;
-
-        return document.documentElement.outerHTML;
-    }
-    return '';
-})(" + newBlockJson + "); 
-"
-
-            Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
-            Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
-            File.WriteAllText(filePath, modifiedHtml)
-            LogMessage("DOM-Knoten wurde direkt per JS ersetzt und die Datei aktualisiert.")
-        End If
-
-        ' Reload Preview
         WebView_2.Reload()
         WebView_2.Refresh()
-
-
-        LogMessage("Ersetzung abgeschlossen.")
     End Sub
 
 
@@ -368,73 +312,62 @@ Public Class Form1
 
     Private Async Sub repace_simple_Click(sender As Object, e As EventArgs) Handles repace_simple.Click
 
-        ' JavaScript zum Abrufen des markierten Bereichs
+        ' 1. Ermittele den selektierten DOM-Knoten (outerHTML und Text) per JavaScript:
         Dim script As String = "
-    (function() {
-        var sel = window.getSelection();
-        if (sel.rangeCount > 0) {
-            var range = sel.getRangeAt(0);
-            var container = range.commonAncestorContainer;
-
-            // Falls der Knoten ein Textknoten ist, wähle das übergeordnete Element
-            if (container.nodeType === 3) { 
-                container = container.parentNode; 
-            }
-
-            return JSON.stringify({ outer: container.outerHTML, text: sel.toString() });
-        }
-        return JSON.stringify({ outer: '', text: '' });
-    })();"
-
-        ' JavaScript-Ergebnis abrufen
+      (function() {
+          var sel = window.getSelection();
+          if (sel.rangeCount > 0) {
+              var container = sel.getRangeAt(0).commonAncestorContainer;
+              if (container.nodeType === 3) { 
+                  container = container.parentNode; 
+              }
+              return JSON.stringify({ outer: container.outerHTML, text: sel.toString() });
+          }
+          return JSON.stringify({ outer: '', text: '' });
+      })();"
         Dim resultJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(script)
+        ' Zuerst den inneren JSON-String extrahieren, da WebView2-Ergebnis doppelt kodiert sein kann:
         Dim innerJson As String = JsonConvert.DeserializeObject(Of String)(resultJson)
         Dim selectionInfo As SelectionInfo = JsonConvert.DeserializeObject(Of SelectionInfo)(innerJson)
 
-        ' Falls keine gültige Auswahl vorliegt, abbrechen
         If String.IsNullOrEmpty(selectionInfo.outer) OrElse String.IsNullOrEmpty(selectionInfo.text) Then
             LogMessage("Keine gültige Selektion gefunden.")
             Return
         End If
 
+        ' 2. Erzeuge den neuen PrismJS-Block basierend auf der Selektion:
+        Dim language As String = cbCodeType.SelectedItem.ToString()
+
         ' Ersetzungsblock definieren
         Dim newBlock As String = "<div name=""prism_placeholder""></div>"
 
-        ' JavaScript-Code zum direkten Ersetzen des selektierten Bereichs
+        ' 3. Serialisiere den neuen Block zur Übergabe in JavaScript:
         Dim newBlockJson As String = JsonConvert.SerializeObject(newBlock)
+
+        ' 4. Führe JavaScript aus, das den selektierten DOM-Knoten durch den neuen Block ersetzt:
         Dim jsCode As String = "
-    (function(newHtml) {
-        var sel = window.getSelection();
-        if (sel.rangeCount > 0) {
-            var range = sel.getRangeAt(0);
-            var selectedText = sel.toString().trim();
+      (function(newHtml) {
+          var sel = window.getSelection();
+          if (sel.rangeCount > 0) {
+              var container = sel.getRangeAt(0).commonAncestorContainer;
+              if (container.nodeType === 3) { 
+                  container = container.parentNode; 
+              }
+              var fragment = document.createRange().createContextualFragment(newHtml);
+              container.parentNode.replaceChild(fragment, container);
+              return document.documentElement.outerHTML;
+          }
+          return '';
+      })(" & newBlockJson & ");"
 
-            if (selectedText.length === 0) {
-                return '';
-            }
-
-            var container = range.commonAncestorContainer;
-            if (container.nodeType === 3) {
-                container = container.parentNode;
-            }
-
-            // Nur den selektierten Text ersetzen
-            container.innerHTML = container.innerHTML.replace(selectedText, newHtml);
-
-            return document.documentElement.outerHTML;
-        }
-        return '';
-    })(" & newBlockJson & ");"
-
-        ' JavaScript ausführen und verändertes HTML abrufen
         Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
         Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
 
-        ' Datei speichern
+        ' 5. Speichere das aktualisierte HTML in der Datei:
         File.WriteAllText(lbFiles.SelectedItem.ToString(), modifiedHtml)
-        LogMessage("Markierter Bereich wurde durch Prism Placeholder ersetzt.")
+        LogMessage("DOM-Knoten wurde direkt per JS ersetzt und die Datei aktualisiert.")
 
-        ' Vorschau aktualisieren
+
         WebView_2.Reload()
         WebView_2.Refresh()
     End Sub
