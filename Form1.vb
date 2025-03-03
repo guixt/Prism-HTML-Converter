@@ -131,6 +131,7 @@ Public Class Form1
                 File.Copy(backupPath, filePath, True)
                 LogMessage("Originaldatei aus Backup wiederhergestellt.")
                 WebView.Reload()
+                WebView_2.Reload()
             Else
                 LogMessage("Backup-Datei nicht gefunden: " & backupPath)
             End If
@@ -312,6 +313,17 @@ Public Class Form1
 
     Private Async Sub repace_simple_Click(sender As Object, e As EventArgs) Handles repace_simple.Click
 
+
+        Dim filepath = lbFiles.SelectedItem.ToString()
+        Dim content As String = File.ReadAllText(filepath)
+
+        LogMessage("Sicherung erstellen (.old)")
+
+        Dim backupPath As String = filepath & ".old"
+        File.WriteAllText(backupPath, content)
+
+
+
         ' 1. Ermittele den selektierten DOM-Knoten (outerHTML und Text) per JavaScript:
         Dim script As String = "
       (function() {
@@ -372,7 +384,47 @@ Public Class Form1
         WebView_2.Refresh()
     End Sub
 
+    Private Sub replace_placeholder_Click(sender As Object, e As EventArgs) Handles replace_placeholder.Click
 
+        Dim filepath = lbFiles.SelectedItem.ToString()
+
+        ' 1. Lese den HTML-Inhalt der Datei ein
+        Dim content As String = File.ReadAllText(filepath)
+
+        LogMessage("Sicherung erstellen (.old)")
+
+        Dim backupPath As String = filepath & ".old"
+        File.WriteAllText(backupPath, content)
+
+        ' 2. Prüfe, ob der Platzhalter vorhanden ist
+        Dim placeholder As String = "<div name=""prism_placeholder""></div>"
+        If Not content.Contains(placeholder) Then
+            LogMessage("Kein Platzhalter gefunden.")
+            Return
+        End If
+
+        ' 3. Benutzer-Code aus der Textbox abrufen
+        Dim userCode As String = txt_code_to_insert.Text.Trim()
+        If String.IsNullOrEmpty(userCode) Then
+            LogMessage("Kein Code zum Einfügen eingegeben.")
+            Return
+        End If
+
+        ' 4. PrismJS-Code generieren (basierend auf ausgewählter Sprache)
+        Dim language As String = cbCodeType.SelectedItem.ToString()
+        Dim prismBlock As String = GetPrismFormattedHtml(language, userCode, "Kopieren")
+
+        ' 5. Ersetze den Platzhalter durch den PrismJS-Code
+        content = content.Replace(placeholder, prismBlock)
+
+        ' 6. Speichere die geänderte Datei
+        File.WriteAllText(filePath, content)
+        LogMessage("Platzhalter erfolgreich durch Prism-Code ersetzt.")
+
+        ' 7. Vorschau aktualisieren
+        WebView_2.Reload()
+        WebView_2.Refresh()
+    End Sub
 
 End Class
 

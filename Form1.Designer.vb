@@ -25,7 +25,7 @@ Partial Class Form1
         Me.lbFiles = New System.Windows.Forms.ListBox()
         Me.btnSelectFolder = New System.Windows.Forms.Button()
         Me.btnInsertScripts = New System.Windows.Forms.Button()
-        Me.txtSelectedCode = New System.Windows.Forms.TextBox()
+        Me.txt_code_to_insert = New System.Windows.Forms.TextBox()
         Me.btnReplaceCode = New System.Windows.Forms.Button()
         Me.rtbLog = New System.Windows.Forms.RichTextBox()
         Me.WebView = New Microsoft.Web.WebView2.WinForms.WebView2()
@@ -36,6 +36,7 @@ Partial Class Form1
         Me.WebView_2 = New Microsoft.Web.WebView2.WinForms.WebView2()
         Me.vbopen = New System.Windows.Forms.Button()
         Me.repace_simple = New System.Windows.Forms.Button()
+        Me.replace_placeholder = New System.Windows.Forms.Button()
         CType(Me.WebView, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.WebView_2, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
@@ -66,13 +67,13 @@ Partial Class Form1
         Me.btnInsertScripts.Text = "Insert script tag"
         Me.btnInsertScripts.UseVisualStyleBackColor = True
         '
-        'txtSelectedCode
+        'txt_code_to_insert
         '
-        Me.txtSelectedCode.Location = New System.Drawing.Point(12, 483)
-        Me.txtSelectedCode.Multiline = True
-        Me.txtSelectedCode.Name = "txtSelectedCode"
-        Me.txtSelectedCode.Size = New System.Drawing.Size(216, 157)
-        Me.txtSelectedCode.TabIndex = 4
+        Me.txt_code_to_insert.Location = New System.Drawing.Point(12, 483)
+        Me.txt_code_to_insert.Multiline = True
+        Me.txt_code_to_insert.Name = "txt_code_to_insert"
+        Me.txt_code_to_insert.Size = New System.Drawing.Size(475, 252)
+        Me.txt_code_to_insert.TabIndex = 4
         '
         'btnReplaceCode
         '
@@ -86,7 +87,7 @@ Partial Class Form1
         'rtbLog
         '
         Me.rtbLog.Font = New System.Drawing.Font("Rockwell", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.rtbLog.Location = New System.Drawing.Point(234, 483)
+        Me.rtbLog.Location = New System.Drawing.Point(499, 481)
         Me.rtbLog.Name = "rtbLog"
         Me.rtbLog.Size = New System.Drawing.Size(635, 157)
         Me.rtbLog.TabIndex = 6
@@ -156,18 +157,28 @@ Partial Class Form1
         '
         'repace_simple
         '
-        Me.repace_simple.Location = New System.Drawing.Point(234, 454)
+        Me.repace_simple.Location = New System.Drawing.Point(504, 674)
         Me.repace_simple.Name = "repace_simple"
         Me.repace_simple.Size = New System.Drawing.Size(108, 23)
         Me.repace_simple.TabIndex = 14
         Me.repace_simple.Text = "Platzhalter einfügen"
         Me.repace_simple.UseVisualStyleBackColor = True
         '
+        'replace_placeholder
+        '
+        Me.replace_placeholder.Location = New System.Drawing.Point(504, 703)
+        Me.replace_placeholder.Name = "replace_placeholder"
+        Me.replace_placeholder.Size = New System.Drawing.Size(108, 23)
+        Me.replace_placeholder.TabIndex = 15
+        Me.replace_placeholder.Text = "Platzhalter ersetzen"
+        Me.replace_placeholder.UseVisualStyleBackColor = True
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1784, 828)
+        Me.Controls.Add(Me.replace_placeholder)
         Me.Controls.Add(Me.repace_simple)
         Me.Controls.Add(Me.vbopen)
         Me.Controls.Add(Me.WebView_2)
@@ -178,7 +189,7 @@ Partial Class Form1
         Me.Controls.Add(Me.WebView)
         Me.Controls.Add(Me.rtbLog)
         Me.Controls.Add(Me.btnReplaceCode)
-        Me.Controls.Add(Me.txtSelectedCode)
+        Me.Controls.Add(Me.txt_code_to_insert)
         Me.Controls.Add(Me.btnInsertScripts)
         Me.Controls.Add(Me.btnSelectFolder)
         Me.Controls.Add(Me.lbFiles)
@@ -194,7 +205,7 @@ Partial Class Form1
     Friend WithEvents lbFiles As ListBox
     Friend WithEvents btnSelectFolder As Button
     Friend WithEvents btnInsertScripts As Button
-    Friend WithEvents txtSelectedCode As TextBox
+    Friend WithEvents txt_code_to_insert As TextBox
     Friend WithEvents btnReplaceCode As Button
     Friend WithEvents rtbLog As RichTextBox
     Friend WithEvents WebView As Microsoft.Web.WebView2.WinForms.WebView2
@@ -205,4 +216,5 @@ Partial Class Form1
     Friend WithEvents WebView_2 As Microsoft.Web.WebView2.WinForms.WebView2
     Friend WithEvents vbopen As Button
     Friend WithEvents repace_simple As Button
+    Friend WithEvents replace_placeholder As Button
 End Class
