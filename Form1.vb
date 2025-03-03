@@ -96,13 +96,8 @@ Public Class Form1
 
     Private Sub InsertScriptTags(filePath As String)
 
+        CreateBackup(filePath)
         Dim content As String = File.ReadAllText(filePath)
-
-        LogMessage("Sicherung erstellen (.old)")
-
-        Dim backupPath As String = filePath & ".old"
-        File.WriteAllText(backupPath, content)
-
 
         LogMessage("Suche nach dem <body>-Tag und füge direkt dahinter die Script- und Link-Tags ein")
 
@@ -124,19 +119,53 @@ Public Class Form1
     End Sub
 
     Private Sub btnRestore_Click(sender As Object, e As EventArgs) Handles btnRestore.Click
-        If lbFiles.SelectedItem IsNot Nothing Then
-            Dim filePath As String = lbFiles.SelectedItem.ToString()
-            Dim backupPath As String = filePath & ".old"
-            If File.Exists(backupPath) Then
-                File.Copy(backupPath, filePath, True)
-                LogMessage("Originaldatei aus Backup wiederhergestellt.")
-                WebView.Reload()
-                WebView_2.Reload()
-            Else
-                LogMessage("Backup-Datei nicht gefunden: " & backupPath)
-            End If
+        If lbFiles.SelectedItem Is Nothing Then
+            LogMessage("Keine Datei ausgewählt.")
+            Return
         End If
+
+        Dim filePath As String = lbFiles.SelectedItem.ToString()
+        Dim backupDir As String = Path.Combine(Path.GetDirectoryName(filePath), "backup")
+        Dim fileNameWithoutExt As String = Path.GetFileNameWithoutExtension(filePath)
+        Dim fileExtension As String = Path.GetExtension(filePath)
+
+        ' Überprüfen, ob das Backup-Verzeichnis existiert
+        If Not Directory.Exists(backupDir) Then
+            LogMessage("Kein Backup-Verzeichnis gefunden: " & backupDir)
+            Return
+        End If
+
+        ' Alle Backups für die Datei suchen
+        Dim backupFiles = Directory.GetFiles(backupDir, $"{fileNameWithoutExt}.backup.*{fileExtension}") _
+                                .OrderByDescending(Function(f) f) ' Neueste zuerst
+
+        ' Prüfen, ob Backups existieren
+        If Not backupFiles.Any() Then
+            LogMessage("Kein Backup gefunden für: " & filePath)
+            Return
+        End If
+
+        ' Neuestes Backup auswählen
+        Dim latestBackup As String = backupFiles.First()
+
+        Try
+            ' 1. Datei aus dem Backup wiederherstellen
+            File.Copy(latestBackup, filePath, True)
+            LogMessage("Wiederhergestellt aus: " & latestBackup)
+
+            ' 2. Backup löschen, damit das nächstältere verfügbar bleibt
+            File.Delete(latestBackup)
+            LogMessage("Backup gelöscht: " & latestBackup)
+
+            ' 3. UI aktualisieren
+            WebView.Reload()
+            WebView_2.Reload()
+
+        Catch ex As Exception
+            LogMessage("Fehler bei der Wiederherstellung: " & ex.Message)
+        End Try
     End Sub
+
 
     Private Function GetPrismFormattedHtml(language As String, code As String, Optional copyText As String = "Kopieren") As String
         Dim prefix As String = ""
@@ -177,6 +206,7 @@ Public Class Form1
     End Function
 
     Private Async Sub ReplaceSelectedCodeUnifiedAsync(filePath As String)
+
         ' 1. Ermittele den selektierten DOM-Knoten (outerHTML und Text) per JavaScript:
         Dim script As String = "
       (function() {
@@ -190,6 +220,9 @@ Public Class Form1
           }
           return JSON.stringify({ outer: '', text: '' });
       })();"
+
+
+
         Dim resultJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(script)
         ' Zuerst den inneren JSON-String extrahieren, da WebView2-Ergebnis doppelt kodiert sein kann:
         Dim innerJson As String = JsonConvert.DeserializeObject(Of String)(resultJson)
@@ -209,19 +242,17 @@ Public Class Form1
 
         ' 4. Führe JavaScript aus, das den selektierten DOM-Knoten durch den neuen Block ersetzt:
         Dim jsCode As String = "
-      (function(newHtml) {
-          var sel = window.getSelection();
-          if (sel.rangeCount > 0) {
-              var container = sel.getRangeAt(0).commonAncestorContainer;
-              if (container.nodeType === 3) { 
-                  container = container.parentNode; 
-              }
-              var fragment = document.createRange().createContextualFragment(newHtml);
-              container.parentNode.replaceChild(fragment, container);
-              return document.documentElement.outerHTML;
-          }
-          return '';
-      })(" & newBlockJson & ");"
+    (function(newHtml) {
+        var sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+            var range = sel.getRangeAt(0);
+            range.deleteContents(); // Entfernt nur den markierten Text
+            var fragment = document.createRange().createContextualFragment(newHtml);
+            range.insertNode(fragment);
+            return document.documentElement.outerHTML;
+        }
+        return '';
+    })(" & newBlockJson & ");"
 
         Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
         Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
@@ -257,10 +288,7 @@ Public Class Form1
 
             Dim content As String = File.ReadAllText(filePath)
 
-            LogMessage("Sicherung erstellen (.old)")
-
-            Dim backupPath As String = filePath & ".old"
-            File.WriteAllText(backupPath, content)
+            CreateBackup(filePath)
 
             LogMessage("Ersetze den selektierten Codeabschnitt")
             ReplaceSelectedCodeUnifiedAsync(filePath)
@@ -314,16 +342,6 @@ Public Class Form1
     Private Async Sub repace_simple_Click(sender As Object, e As EventArgs) Handles repace_simple.Click
 
 
-        Dim filepath = lbFiles.SelectedItem.ToString()
-        Dim content As String = File.ReadAllText(filepath)
-
-        LogMessage("Sicherung erstellen (.old)")
-
-        Dim backupPath As String = filepath & ".old"
-        File.WriteAllText(backupPath, content)
-
-
-
         ' 1. Ermittele den selektierten DOM-Knoten (outerHTML und Text) per JavaScript:
         Dim script As String = "
       (function() {
@@ -337,6 +355,9 @@ Public Class Form1
           }
           return JSON.stringify({ outer: '', text: '' });
       })();"
+
+
+
         Dim resultJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(script)
         ' Zuerst den inneren JSON-String extrahieren, da WebView2-Ergebnis doppelt kodiert sein kann:
         Dim innerJson As String = JsonConvert.DeserializeObject(Of String)(resultJson)
@@ -349,8 +370,6 @@ Public Class Form1
 
         ' 2. Erzeuge den neuen PrismJS-Block basierend auf der Selektion:
         Dim language As String = cbCodeType.SelectedItem.ToString()
-
-        ' Ersetzungsblock definieren
         Dim newBlock As String = "<div name=""prism_placeholder""></div>"
 
         ' 3. Serialisiere den neuen Block zur Übergabe in JavaScript:
@@ -358,19 +377,17 @@ Public Class Form1
 
         ' 4. Führe JavaScript aus, das den selektierten DOM-Knoten durch den neuen Block ersetzt:
         Dim jsCode As String = "
-      (function(newHtml) {
-          var sel = window.getSelection();
-          if (sel.rangeCount > 0) {
-              var container = sel.getRangeAt(0).commonAncestorContainer;
-              if (container.nodeType === 3) { 
-                  container = container.parentNode; 
-              }
-              var fragment = document.createRange().createContextualFragment(newHtml);
-              container.parentNode.replaceChild(fragment, container);
-              return document.documentElement.outerHTML;
-          }
-          return '';
-      })(" & newBlockJson & ");"
+    (function(newHtml) {
+        var sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+            var range = sel.getRangeAt(0);
+            range.deleteContents(); // Entfernt nur den markierten Text
+            var fragment = document.createRange().createContextualFragment(newHtml);
+            range.insertNode(fragment);
+            return document.documentElement.outerHTML;
+        }
+        return '';
+    })(" & newBlockJson & ");"
 
         Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
         Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
@@ -387,14 +404,11 @@ Public Class Form1
     Private Sub replace_placeholder_Click(sender As Object, e As EventArgs) Handles replace_placeholder.Click
 
         Dim filepath = lbFiles.SelectedItem.ToString()
+        CreateBackup(filepath)
 
         ' 1. Lese den HTML-Inhalt der Datei ein
         Dim content As String = File.ReadAllText(filepath)
 
-        LogMessage("Sicherung erstellen (.old)")
-
-        Dim backupPath As String = filepath & ".old"
-        File.WriteAllText(backupPath, content)
 
         ' 2. Prüfe, ob der Platzhalter vorhanden ist
         Dim placeholder As String = "<div name=""prism_placeholder""></div>"
@@ -425,6 +439,48 @@ Public Class Form1
         WebView_2.Reload()
         WebView_2.Refresh()
     End Sub
+
+    Private Function CreateBackup(filePath As String) As String
+        Try
+            ' 1. Sicherstellen, dass die Datei existiert
+            If Not File.Exists(filePath) Then
+                LogMessage("Fehler: Datei existiert nicht - " & filePath)
+                Return String.Empty
+            End If
+
+            ' 2. Backup-Verzeichnis erstellen
+            Dim backupDir As String = Path.Combine(Path.GetDirectoryName(filePath), "backup")
+            If Not Directory.Exists(backupDir) Then
+                Directory.CreateDirectory(backupDir)
+            End If
+
+            ' 3. Basis-Dateinamen ohne Pfad und Erweiterung ermitteln
+            Dim fileNameWithoutExt As String = Path.GetFileNameWithoutExtension(filePath)
+            Dim fileExtension As String = Path.GetExtension(filePath)
+
+            ' 4. Backup-Dateiname mit fortlaufender Nummer suchen
+            Dim backupFilePath As String
+            Dim counter As Integer = 1
+
+            Do
+                backupFilePath = Path.Combine(backupDir, $"{fileNameWithoutExt}.backup.{counter}{fileExtension}")
+                counter += 1
+            Loop While File.Exists(backupFilePath)
+
+            ' 5. Datei-Inhalt lesen und ins Backup schreiben
+            File.Copy(filePath, backupFilePath)
+
+            ' 6. Log ausgeben und Dateinamen zurückgeben
+            LogMessage("Backup erstellt: " & backupFilePath)
+            Return backupFilePath
+
+        Catch ex As Exception
+            LogMessage("Fehler beim Erstellen des Backups: " & ex.Message)
+            Return String.Empty
+        End Try
+    End Function
+
+
 
 End Class
 
