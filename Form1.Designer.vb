@@ -31,7 +31,11 @@ Partial Class Form1
         Me.WebView = New Microsoft.Web.WebView2.WinForms.WebView2()
         Me.btnRestore = New System.Windows.Forms.Button()
         Me.cbCodeType = New System.Windows.Forms.ComboBox()
+        Me.basepath = New System.Windows.Forms.TextBox()
+        Me.ProgressBar1 = New System.Windows.Forms.ProgressBar()
+        Me.WebView_2 = New Microsoft.Web.WebView2.WinForms.WebView2()
         CType(Me.WebView, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.WebView_2, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'lbFiles
@@ -46,7 +50,7 @@ Partial Class Form1
         '
         Me.btnSelectFolder.Location = New System.Drawing.Point(12, 425)
         Me.btnSelectFolder.Name = "btnSelectFolder"
-        Me.btnSelectFolder.Size = New System.Drawing.Size(210, 23)
+        Me.btnSelectFolder.Size = New System.Drawing.Size(129, 23)
         Me.btnSelectFolder.TabIndex = 1
         Me.btnSelectFolder.Text = "Verzeichnis wählen"
         Me.btnSelectFolder.UseVisualStyleBackColor = True
@@ -82,7 +86,7 @@ Partial Class Form1
         Me.rtbLog.Font = New System.Drawing.Font("Rockwell", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.rtbLog.Location = New System.Drawing.Point(234, 483)
         Me.rtbLog.Name = "rtbLog"
-        Me.rtbLog.Size = New System.Drawing.Size(1173, 157)
+        Me.rtbLog.Size = New System.Drawing.Size(635, 157)
         Me.rtbLog.TabIndex = 6
         Me.rtbLog.Text = ""
         '
@@ -93,15 +97,15 @@ Partial Class Form1
         Me.WebView.DefaultBackgroundColor = System.Drawing.Color.White
         Me.WebView.Location = New System.Drawing.Point(504, 12)
         Me.WebView.Name = "WebView"
-        Me.WebView.Size = New System.Drawing.Size(903, 407)
+        Me.WebView.Size = New System.Drawing.Size(630, 407)
         Me.WebView.TabIndex = 7
         Me.WebView.ZoomFactor = 1.0R
         '
         'btnRestore
         '
-        Me.btnRestore.Location = New System.Drawing.Point(1215, 425)
+        Me.btnRestore.Location = New System.Drawing.Point(737, 428)
         Me.btnRestore.Name = "btnRestore"
-        Me.btnRestore.Size = New System.Drawing.Size(192, 23)
+        Me.btnRestore.Size = New System.Drawing.Size(132, 23)
         Me.btnRestore.TabIndex = 8
         Me.btnRestore.Text = "Backup wiederherstellen"
         Me.btnRestore.UseVisualStyleBackColor = True
@@ -114,11 +118,39 @@ Partial Class Form1
         Me.cbCodeType.Size = New System.Drawing.Size(185, 21)
         Me.cbCodeType.TabIndex = 9
         '
+        'basepath
+        '
+        Me.basepath.Location = New System.Drawing.Point(148, 428)
+        Me.basepath.Name = "basepath"
+        Me.basepath.Size = New System.Drawing.Size(350, 20)
+        Me.basepath.TabIndex = 10
+        '
+        'ProgressBar1
+        '
+        Me.ProgressBar1.Location = New System.Drawing.Point(504, 425)
+        Me.ProgressBar1.Name = "ProgressBar1"
+        Me.ProgressBar1.Size = New System.Drawing.Size(174, 23)
+        Me.ProgressBar1.TabIndex = 11
+        '
+        'WebView_2
+        '
+        Me.WebView_2.AllowExternalDrop = True
+        Me.WebView_2.CreationProperties = Nothing
+        Me.WebView_2.DefaultBackgroundColor = System.Drawing.Color.White
+        Me.WebView_2.Location = New System.Drawing.Point(1140, 12)
+        Me.WebView_2.Name = "WebView_2"
+        Me.WebView_2.Size = New System.Drawing.Size(630, 407)
+        Me.WebView_2.TabIndex = 12
+        Me.WebView_2.ZoomFactor = 1.0R
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(1419, 650)
+        Me.ClientSize = New System.Drawing.Size(1784, 828)
+        Me.Controls.Add(Me.WebView_2)
+        Me.Controls.Add(Me.ProgressBar1)
+        Me.Controls.Add(Me.basepath)
         Me.Controls.Add(Me.cbCodeType)
         Me.Controls.Add(Me.btnRestore)
         Me.Controls.Add(Me.WebView)
@@ -131,6 +163,7 @@ Partial Class Form1
         Me.Name = "Form1"
         Me.Text = "Form1"
         CType(Me.WebView, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.WebView_2, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -145,4 +178,7 @@ Partial Class Form1
     Friend WithEvents WebView As Microsoft.Web.WebView2.WinForms.WebView2
     Friend WithEvents btnRestore As Button
     Friend WithEvents cbCodeType As ComboBox
+    Friend WithEvents basepath As TextBox
+    Friend WithEvents ProgressBar1 As ProgressBar
+    Friend WithEvents WebView_2 As Microsoft.Web.WebView2.WinForms.WebView2
 End Class

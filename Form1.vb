@@ -4,6 +4,8 @@ Imports System.Text.RegularExpressions
 Imports Newtonsoft.Json
 Imports HtmlAgilityPack
 Imports Microsoft.Web.WebView2.WinForms
+Imports System.Windows.Forms.VisualStyles.VisualStyleElement
+Imports Microsoft.Web.WebView2.Core
 
 
 Public Class Form1
@@ -13,30 +15,59 @@ Public Class Form1
 
 
         ' Hier kannst du noch Initialisierungen vornehmen, falls nötig.
-        LoadFilesFromDirectory("D:\Synactive\Work in Progress\Synactive Homepage\docu_d\")
+        basepath.Text = My.Settings.LastText
 
         LogMessage("Herzlich Willkommen!")
 
         cbCodeType.Items.AddRange(New String() {"ABAP", "HTML", "JavaScript", "GuiXT", "VB.NET"})
         If cbCodeType.Items.Count > 0 Then cbCodeType.SelectedIndex = 3
 
+
+
     End Sub
 
+
+    ' Beim Schließen des Formulars
+    Private Sub MainForm_FormClosing(sender As Object, e As FormClosingEventArgs) Handles MyBase.FormClosing
+
+        My.Settings.LastText = basepath.Text
+        My.Settings.Save()
+    End Sub
     Private Sub btnSelectFolder_Click(sender As Object, e As EventArgs) Handles btnSelectFolder.Click
 
-        Dim fbd As New FolderBrowserDialog
+        Dim fbd As New FolderBrowserDialog()
+
         If fbd.ShowDialog() = DialogResult.OK Then
-            LoadFilesFromDirectory(fbd.SelectedPath)
+            basepath.Text = fbd.SelectedPath
         End If
 
     End Sub
 
-    Private Sub LoadFilesFromDirectory(path As String)
-        lbFiles.Items.Clear()
-        Dim files = Directory.GetFiles(path, "*.html", SearchOption.AllDirectories)
-        For Each file In files
-            lbFiles.Items.Add(file)
-        Next
+    Private Async Sub LoadFilesFromDirectoryAsync(path As String)
+        If Directory.Exists(path) Then
+            lbFiles.Items.Clear()
+            ProgressBar1.Style = ProgressBarStyle.Marquee
+            ProgressBar1.Visible = True
+
+            ' Dateisuche asynchron ausführen:
+            Dim files As List(Of String) = Await Task.Run(Function()
+                                                              Return Directory.EnumerateFiles(path, "*.html", SearchOption.AllDirectories).ToList()
+                                                          End Function)
+
+            ' Füge die Dateien in kleinen Chargen zur ListBox hinzu, um die UI nicht zu blockieren:
+            Dim count As Integer = 0
+            For Each file As String In files
+                lbFiles.Items.Add(file)
+                count += 1
+                ' Kurze Pause alle 50 Dateien, um der UI Zeit zu geben, sich zu aktualisieren:
+                If count Mod 50 = 0 Then
+                    Application.DoEvents()
+
+                End If
+            Next
+
+            ProgressBar1.Visible = False
+        End If
     End Sub
 
     ' Wenn der Benutzer in der ListBox eine Datei auswählt, wird diese im WebView2 angezeigt.
@@ -44,6 +75,8 @@ Public Class Form1
         If lbFiles.SelectedItem IsNot Nothing Then
             Dim filePath As String = lbFiles.SelectedItem.ToString()
             WebView.Source = New Uri(filePath)
+            WebView_2.Source = New Uri(filePath)
+
 
         End If
     End Sub
@@ -54,8 +87,9 @@ Public Class Form1
             Dim filePath As String = lbFiles.SelectedItem.ToString()
             InsertScriptTags(filePath)
 
-            WebView.Reload()
-            WebView.Refresh()  ' Vorschau aktualisieren
+            WebView_2.Reload()
+            WebView_2.Refresh()  ' Vorschau aktualisieren
+
         End If
     End Sub
 
@@ -141,7 +175,6 @@ Public Class Form1
         Return prefix & encodedCode & suffix
     End Function
 
-
     Private Async Sub ReplaceSelectedCodeUnifiedAsync(filePath As String)
         ' 1. Ermittele den selektierten DOM-Knoten (outerHTML und Text) per JavaScript:
         Dim script As String = "
@@ -156,8 +189,8 @@ Public Class Form1
           }
           return JSON.stringify({ outer: '', text: '' });
       })();"
+
         Dim resultJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(script)
-        ' Zuerst den inneren JSON-String extrahieren, da WebView2-Ergebnis doppelt kodiert sein kann:
         Dim innerJson As String = JsonConvert.DeserializeObject(Of String)(resultJson)
         Dim selectionInfo As SelectionInfo = JsonConvert.DeserializeObject(Of SelectionInfo)(innerJson)
 
@@ -170,37 +203,76 @@ Public Class Form1
         Dim language As String = cbCodeType.SelectedItem.ToString()
         Dim newBlock As String = GetPrismFormattedHtml(language, selectionInfo.text, "Kopieren")
 
-        ' 3. Serialisiere den neuen Block zur Übergabe in JavaScript:
-        Dim newBlockJson As String = JsonConvert.SerializeObject(newBlock)
+        ' 3. Lade den HTML-Inhalt der Datei:
+        Dim content As String = File.ReadAllText(filePath)
 
-        ' 4. Führe JavaScript aus, das den selektierten DOM-Knoten durch den neuen Block ersetzt:
-        Dim jsCode As String = "
-      (function(newHtml) {
-          var sel = window.getSelection();
-          if (sel.rangeCount > 0) {
-              var container = sel.getRangeAt(0).commonAncestorContainer;
-              if (container.nodeType === 3) { 
-                  container = container.parentNode; 
-              }
-              var fragment = document.createRange().createContextualFragment(newHtml);
-              container.parentNode.replaceChild(fragment, container);
-              return document.documentElement.outerHTML;
-          }
-          return '';
-      })(" & newBlockJson & ");"
+        If content.Contains("<!-- HTML generated using hilite.me -->") Then
+            ' Falls der hilite.me Kommentar gefunden wird, ersetze den folgenden <div>-Bereich:
+            Dim doc As New HtmlAgilityPack.HtmlDocument()
+            doc.LoadHtml(content)
+            Dim commentNode As HtmlAgilityPack.HtmlNode = doc.DocumentNode.SelectSingleNode("//comment()[contains(.,'HTML generated using hilite.me')]")
 
-        Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
-        Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
+            If commentNode IsNot Nothing Then
+                Dim divNode As HtmlAgilityPack.HtmlNode = commentNode.NextSibling
+                ' Überspringe Whitespace-Textknoten:
+                While divNode IsNot Nothing AndAlso divNode.NodeType <> HtmlAgilityPack.HtmlNodeType.Element
+                    divNode = divNode.NextSibling
+                End While
 
-        ' 5. Speichere das aktualisierte HTML in der Datei:
-        File.WriteAllText(filePath, modifiedHtml)
-        LogMessage("DOM-Knoten wurde direkt per JS ersetzt und die Datei aktualisiert.")
+                If divNode IsNot Nothing AndAlso divNode.Name.ToLower() = "div" Then
+                    ' 4. Füge den PrismJS-Code in einen <div>-Container ein:
+                    Dim snippet As String = "<div>" & newBlock & "</div>"
+                    Dim fragmentDoc As New HtmlAgilityPack.HtmlDocument()
+                    fragmentDoc.LoadHtml(snippet)
+                    Dim containerNode As HtmlAgilityPack.HtmlNode = fragmentDoc.DocumentNode.SelectSingleNode("//div[@id='replaceContainer']")
+
+                    If containerNode IsNot Nothing Then
+                        ' Ersetze den ursprünglichen <div>-Knoten durch den neuen Container
+                        divNode.ParentNode.ReplaceChild(containerNode, divNode)
+                        ' Entferne den Kommentar, damit die Ersetzung markiert ist
+                        commentNode.ParentNode.RemoveChild(commentNode)
+                        doc.Save(filePath)
+                        LogMessage("Bereich mit hilite.me Kommentar erfolgreich ersetzt und Kommentar gelöscht.")
+                    Else
+                        LogMessage("Fehler beim Erstellen des neuen Knotens.")
+                    End If
+                Else
+                    LogMessage("Kein <div> nach hilite.me Kommentar gefunden.")
+                End If
+            Else
+                LogMessage("Hilite.me Kommentar nicht gefunden.")
+            End If
+        Else
+            ' Ohne hilite.me Kommentar: Ersetze den selektierten DOM-Knoten per JavaScript:
+            Dim newBlockJson As String = JsonConvert.SerializeObject(newBlock)
+            Dim jsCode As String = "
+         (function(newHtml) {
+             var sel = window.getSelection();
+             if (sel.rangeCount > 0) {
+                 var container = sel.getRangeAt(0).commonAncestorContainer;
+                 if (container.nodeType === 3) { 
+                     container = container.parentNode; 
+                 }
+                 var fragment = document.createRange().createContextualFragment(newHtml);
+                 container.parentNode.replaceChild(fragment, container);
+                 return document.documentElement.outerHTML;
+             }
+             return '';
+         })(" & newBlockJson & ");"
+
+            Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
+            Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
+            File.WriteAllText(filePath, modifiedHtml)
+            LogMessage("DOM-Knoten wurde direkt per JS ersetzt und die Datei aktualisiert.")
+        End If
+
+        WebView_2.Reload()
+        WebView_2.Refresh()
 
 
-        WebView.Reload()
-        WebView.Refresh()
-
+        LogMessage("Ersetzung abgeschlossen.")
     End Sub
+
 
 
     Private Function NormalizeText(text As String) As String
@@ -234,6 +306,20 @@ Public Class Form1
         End If
 
     End Sub
+
+    Private Sub basepath_TextChanged(sender As Object, e As EventArgs) Handles basepath.TextChanged
+
+        LoadFilesFromDirectoryAsync(basepath.Text)
+
+    End Sub
+
+    Private Sub WebView_NavigationCompleted(sender As Object, e As CoreWebView2NavigationCompletedEventArgs) Handles WebView.NavigationCompleted
+
+
+
+    End Sub
+
+
 End Class
 
 
