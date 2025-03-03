@@ -1,9 +1,9 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Class Form1
     Inherits System.Windows.Forms.Form
 
     'Das Formular überschreibt den Löschvorgang, um die Komponentenliste zu bereinigen.
-    <System.Diagnostics.DebuggerNonUserCode()> _
+    <System.Diagnostics.DebuggerNonUserCode()>
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         Try
             If disposing AndAlso components IsNot Nothing Then
@@ -20,7 +20,7 @@ Partial Class Form1
     'Hinweis: Die folgende Prozedur ist für den Windows Form-Designer erforderlich.
     'Das Bearbeiten ist mit dem Windows Form-Designer möglich.  
     'Das Bearbeiten mit dem Code-Editor ist nicht möglich.
-    <System.Diagnostics.DebuggerStepThrough()> _
+    <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.lbFiles = New System.Windows.Forms.ListBox()
         Me.btnSelectFolder = New System.Windows.Forms.Button()
@@ -37,6 +37,10 @@ Partial Class Form1
         Me.vbopen = New System.Windows.Forms.Button()
         Me.repace_simple = New System.Windows.Forms.Button()
         Me.replace_placeholder = New System.Windows.Forms.Button()
+        Me.encoding = New System.Windows.Forms.TextBox()
+        Me.replace_guixt = New System.Windows.Forms.Button()
+        Me.replace_vbnet = New System.Windows.Forms.Button()
+        Me.del_selected_element = New System.Windows.Forms.Button()
         CType(Me.WebView, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.WebView_2, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
@@ -173,11 +177,50 @@ Partial Class Form1
         Me.replace_placeholder.Text = "Platzhalter ersetzen"
         Me.replace_placeholder.UseVisualStyleBackColor = True
         '
+        'encoding
+        '
+        Me.encoding.Location = New System.Drawing.Point(934, 431)
+        Me.encoding.Name = "encoding"
+        Me.encoding.ReadOnly = True
+        Me.encoding.Size = New System.Drawing.Size(200, 20)
+        Me.encoding.TabIndex = 16
+        '
+        'replace_guixt
+        '
+        Me.replace_guixt.Location = New System.Drawing.Point(628, 674)
+        Me.replace_guixt.Name = "replace_guixt"
+        Me.replace_guixt.Size = New System.Drawing.Size(121, 23)
+        Me.replace_guixt.TabIndex = 17
+        Me.replace_guixt.Text = "Replace GuiXT"
+        Me.replace_guixt.UseVisualStyleBackColor = True
+        '
+        'replace_vbnet
+        '
+        Me.replace_vbnet.Location = New System.Drawing.Point(628, 703)
+        Me.replace_vbnet.Name = "replace_vbnet"
+        Me.replace_vbnet.Size = New System.Drawing.Size(121, 23)
+        Me.replace_vbnet.TabIndex = 18
+        Me.replace_vbnet.Text = "Replace VB.NET"
+        Me.replace_vbnet.UseVisualStyleBackColor = True
+        '
+        'del_selected_element
+        '
+        Me.del_selected_element.Location = New System.Drawing.Point(765, 674)
+        Me.del_selected_element.Name = "del_selected_element"
+        Me.del_selected_element.Size = New System.Drawing.Size(164, 23)
+        Me.del_selected_element.TabIndex = 19
+        Me.del_selected_element.Text = "Delete selected lement"
+        Me.del_selected_element.UseVisualStyleBackColor = True
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1784, 828)
+        Me.Controls.Add(Me.del_selected_element)
+        Me.Controls.Add(Me.replace_vbnet)
+        Me.Controls.Add(Me.replace_guixt)
+        Me.Controls.Add(Me.encoding)
         Me.Controls.Add(Me.replace_placeholder)
         Me.Controls.Add(Me.repace_simple)
         Me.Controls.Add(Me.vbopen)
@@ -217,4 +260,8 @@ Partial Class Form1
     Friend WithEvents vbopen As Button
     Friend WithEvents repace_simple As Button
     Friend WithEvents replace_placeholder As Button
+    Friend WithEvents encoding As TextBox
+    Friend WithEvents replace_guixt As Button
+    Friend WithEvents replace_vbnet As Button
+    Friend WithEvents del_selected_element As Button
 End Class

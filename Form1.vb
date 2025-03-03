@@ -6,6 +6,7 @@ Imports HtmlAgilityPack
 Imports Microsoft.Web.WebView2.WinForms
 Imports System.Windows.Forms.VisualStyles.VisualStyleElement
 Imports Microsoft.Web.WebView2.Core
+Imports System.Text
 
 
 Public Class Form1
@@ -77,6 +78,9 @@ Public Class Form1
             WebView.Source = New Uri(filePath)
             WebView_2.Source = New Uri(filePath)
 
+            Dim detectedEncoding As Encoding = EncodingDetector.DetectFileEncoding(filePath)
+
+            encoding.Text = detectedEncoding.EncodingName
 
         End If
     End Sub
@@ -200,9 +204,15 @@ Public Class Form1
                 prefix = "<pre><code>"
                 suffix = "</code></pre>"
         End Select
+
         ' Den Code HTML-sicher kodieren
-        Dim encodedCode As String = System.Net.WebUtility.HtmlEncode(code)
-        Return prefix & encodedCode & suffix
+        ' Dim encodedCode As String = System.Net.WebUtility.HtmlEncode(code)
+        ' Return prefix & encodedCode & suffix
+
+
+        Return prefix & code & suffix
+
+
     End Function
 
     Private Async Sub ReplaceSelectedCodeUnifiedAsync(filePath As String)
@@ -283,6 +293,15 @@ Public Class Form1
     Private Sub btnReplaceCode_Click(sender As Object, e As EventArgs) Handles btnReplaceCode.Click
 
 
+        Replace_Code_Start()
+
+
+
+
+    End Sub
+
+    Public Sub Replace_Code_Start()
+
         If lbFiles.SelectedItem IsNot Nothing Then
             Dim filePath As String = lbFiles.SelectedItem.ToString()
 
@@ -294,7 +313,6 @@ Public Class Form1
             ReplaceSelectedCodeUnifiedAsync(filePath)
 
         End If
-
     End Sub
 
     Private Sub basepath_TextChanged(sender As Object, e As EventArgs) Handles basepath.TextChanged
@@ -340,6 +358,9 @@ Public Class Form1
     End Sub
 
     Private Async Sub repace_simple_Click(sender As Object, e As EventArgs) Handles repace_simple.Click
+
+        Dim filepath = lbFiles.SelectedItem.ToString()
+        CreateBackup(filepath)
 
 
         ' 1. Ermittele den selektierten DOM-Knoten (outerHTML und Text) per JavaScript:
@@ -401,41 +422,61 @@ Public Class Form1
         WebView_2.Refresh()
     End Sub
 
-    Private Sub replace_placeholder_Click(sender As Object, e As EventArgs) Handles replace_placeholder.Click
 
+    Private Async Sub replace_placeholder_Click(sender As Object, e As EventArgs) Handles replace_placeholder.Click
         Dim filepath = lbFiles.SelectedItem.ToString()
         CreateBackup(filepath)
 
-        ' 1. Lese den HTML-Inhalt der Datei ein
-        Dim content As String = File.ReadAllText(filepath)
+        ' 1. Überprüfen, ob der Platzhalter existiert
+        Dim checkPlaceholderScript As String = "
+    (function() {
+        var placeholder = document.querySelector('div[name=""prism_placeholder""]');
+        return placeholder ? true : false;
+    })();"
 
+        Dim placeholderExistsJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(checkPlaceholderScript)
+        Dim placeholderExists As Boolean = JsonConvert.DeserializeObject(Of Boolean)(placeholderExistsJson)
 
-        ' 2. Prüfe, ob der Platzhalter vorhanden ist
-        Dim placeholder As String = "<div name=""prism_placeholder""></div>"
-        If Not content.Contains(placeholder) Then
+        If Not placeholderExists Then
             LogMessage("Kein Platzhalter gefunden.")
             Return
         End If
 
-        ' 3. Benutzer-Code aus der Textbox abrufen
+        ' 2. Benutzer-Code aus der Textbox abrufen
         Dim userCode As String = txt_code_to_insert.Text.Trim()
         If String.IsNullOrEmpty(userCode) Then
             LogMessage("Kein Code zum Einfügen eingegeben.")
             Return
         End If
 
-        ' 4. PrismJS-Code generieren (basierend auf ausgewählter Sprache)
+        ' 3. PrismJS-Code generieren
         Dim language As String = cbCodeType.SelectedItem.ToString()
         Dim prismBlock As String = GetPrismFormattedHtml(language, userCode, "Kopieren")
 
-        ' 5. Ersetze den Platzhalter durch den PrismJS-Code
-        content = content.Replace(placeholder, prismBlock)
+        ' 4. Serialisieren für JavaScript
+        Dim prismBlockJson As String = JsonConvert.SerializeObject(prismBlock)
 
-        ' 6. Speichere die geänderte Datei
-        File.WriteAllText(filePath, content)
-        LogMessage("Platzhalter erfolgreich durch Prism-Code ersetzt.")
+        ' 5. JavaScript-Code, um den Platzhalter zu ersetzen
+        Dim jsCode As String = "
+    (function(newHtml) {
+        var placeholder = document.querySelector('div[name=""prism_placeholder""]');
+        if (placeholder) {
+            var fragment = document.createRange().createContextualFragment(newHtml);
+            placeholder.parentNode.replaceChild(fragment, placeholder);
+            return document.documentElement.outerHTML;
+        }
+        return '';
+    })(" & prismBlockJson & ");"
 
-        ' 7. Vorschau aktualisieren
+        ' 6. JavaScript ausführen, um das HTML zu aktualisieren
+        Dim modifiedHtmlJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(jsCode)
+        Dim modifiedHtml As String = JsonConvert.DeserializeObject(Of String)(modifiedHtmlJson)
+
+        ' 7. Speichern des aktualisierten HTML-Codes
+        File.WriteAllText(filepath, modifiedHtml)
+        LogMessage("Platzhalter durch Prism-Code ersetzt und Datei aktualisiert.")
+
+        ' 8. Vorschau aktualisieren
         WebView_2.Reload()
         WebView_2.Refresh()
     End Sub
@@ -480,8 +521,60 @@ Public Class Form1
         End Try
     End Function
 
+    Private Sub lbFiles_KeyDown(sender As Object, e As KeyEventArgs) Handles lbFiles.KeyDown
+        ' Prüfen, ob die DELETE-Taste gedrückt wurde
+        If e.KeyCode = Keys.Delete Then
+            ' Prüfen, ob eine Datei ausgewählt ist
+            If lbFiles.SelectedItem IsNot Nothing Then
+                Dim filePath As String = lbFiles.SelectedItem.ToString()
 
+                ' Sicherheitsabfrage vor dem Löschen
+                Dim result As DialogResult = MessageBox.Show("Möchten Sie die Datei wirklich löschen?" & vbCrLf & filePath,
+                                                             "Datei löschen",
+                                                             MessageBoxButtons.YesNo,
+                                                             MessageBoxIcon.Warning)
 
+                If result = DialogResult.Yes Then
+                    Try
+                        ' Datei löschen
+                        If File.Exists(filePath) Then
+                            File.Delete(filePath)
+                            LogMessage("Datei gelöscht: " & filePath)
+
+                            ' Die Datei aus der ListBox entfernen
+                            lbFiles.Items.Remove(lbFiles.SelectedItem)
+                        Else
+                            LogMessage("Datei nicht gefunden: " & filePath)
+                        End If
+                    Catch ex As Exception
+                        LogMessage("Fehler beim Löschen der Datei: " & ex.Message)
+                    End Try
+                End If
+            Else
+                LogMessage("Keine Datei ausgewählt.")
+            End If
+        End If
+    End Sub
+
+    Private Sub replace_guixt_Click(sender As Object, e As EventArgs) Handles replace_guixt.Click
+
+        '  {"ABAP", "HTML", "JavaScript", "GuiXT", "VB.NET"}
+
+        cbCodeType.SelectedIndex = 3
+        Replace_Code_Start()
+
+    End Sub
+
+    Private Sub replace_vbnet_Click(sender As Object, e As EventArgs) Handles replace_vbnet.Click
+
+        cbCodeType.SelectedIndex = 4
+        Replace_Code_Start()
+
+    End Sub
+
+    Private Async Sub del_selected_element_Click(sender As Object, e As EventArgs)
+
+    End Sub
 End Class
 
 
