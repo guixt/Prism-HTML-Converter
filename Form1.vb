@@ -266,6 +266,7 @@ Public Class Form1
             LogMessage("DOM-Knoten wurde direkt per JS ersetzt und die Datei aktualisiert.")
         End If
 
+        ' Reload Preview
         WebView_2.Reload()
         WebView_2.Refresh()
 
