@@ -8,6 +8,7 @@ Imports System.Windows.Forms.VisualStyles.VisualStyleElement
 Imports Microsoft.Web.WebView2.Core
 Imports System.Text
 Imports System.Net
+Imports System.IO.Directory
 
 
 Public Class Form1
@@ -45,32 +46,35 @@ Public Class Form1
 
     End Sub
 
-    Private Async Sub LoadFilesFromDirectoryAsync(path As String)
+    Private Async Sub LoadFilesFromDirectoryAsync(path As String, includeSubdirectories As Boolean)
         If Directory.Exists(path) Then
             lbFiles.Items.Clear()
             ProgressBar1.Style = ProgressBarStyle.Marquee
             ProgressBar1.Visible = True
 
-            ' Dateisuche asynchron ausführen:
+            ' Suchoption basierend auf Parameter festlegen
+            Dim searchOption As SearchOption = If(includeSubdirectories, SearchOption.AllDirectories, SearchOption.TopDirectoryOnly)
+
+            ' Dateisuche asynchron ausführen
             Dim files As List(Of String) = Await Task.Run(Function()
-                                                              Return Directory.EnumerateFiles(path, "*.html", SearchOption.AllDirectories).ToList()
+                                                              Return Directory.EnumerateFiles(path, "*.html", searchOption).ToList()
                                                           End Function)
 
-            ' Füge die Dateien in kleinen Chargen zur ListBox hinzu, um die UI nicht zu blockieren:
+            ' Füge die Dateien in kleinen Chargen zur ListBox hinzu, um die UI nicht zu blockieren
             Dim count As Integer = 0
             For Each file As String In files
                 lbFiles.Items.Add(file)
                 count += 1
-                ' Kurze Pause alle 50 Dateien, um der UI Zeit zu geben, sich zu aktualisieren:
+                ' Kurze Pause alle 50 Dateien, um der UI Zeit zu geben, sich zu aktualisieren
                 If count Mod 50 = 0 Then
                     Application.DoEvents()
-
                 End If
             Next
 
             ProgressBar1.Visible = False
         End If
     End Sub
+
 
     ' Wenn der Benutzer in der ListBox eine Datei auswählt, wird diese im WebView2 angezeigt.
     Private Sub lbFiles_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lbFiles.SelectedIndexChanged
@@ -321,7 +325,7 @@ Public Class Form1
 
     Private Sub basepath_TextChanged(sender As Object, e As EventArgs) Handles basepath.TextChanged
 
-        LoadFilesFromDirectoryAsync(basepath.Text)
+        LoadFilesFromDirectoryAsync(basepath.Text, withSubs.Checked)
 
     End Sub
 
@@ -583,11 +587,9 @@ Public Class Form1
 
     End Sub
 
-    Private Async Sub del_selected_element_Click(sender As Object, e As EventArgs)
-
-    End Sub
 
     Private Async Sub ExpandSelection_Click(sender As Object, e As EventArgs) Handles ExpandSelection.Click
+
         ' JavaScript-Code zum Hochhangeln der Selektion
         Dim script As String = "
     (function() {
@@ -632,7 +634,6 @@ Public Class Form1
     Private Async Sub del_selected_element_Click_1(sender As Object, e As EventArgs) Handles del_selected_element.Click
         Dim filepath = lbFiles.SelectedItem.ToString()
         CreateBackup(filepath)
-
 
         ' 1. Ermittele den selektierten DOM-Knoten (outerHTML und Text) per JavaScript:
         Dim script As String = "
@@ -696,6 +697,137 @@ Public Class Form1
 
         WebView_2.Reload()
         WebView_2.Refresh()
+    End Sub
+
+    Private Sub Form1_KeyPress(sender As Object, e As KeyPressEventArgs) Handles MyBase.KeyPress
+
+        '  {"ABAP", "HTML", "JavaScript", "GuiXT", "VB.NET"}
+
+        ' Problem: Löst nicht aus, wird wohl von den Controls überschrieben und behandelt
+
+        Select Case e.KeyChar
+            Case "1"c
+                cbCodeType.SelectedIndex = 1
+
+            Case "2"c
+                cbCodeType.SelectedIndex = 2
+
+            Case "3"c
+                cbCodeType.SelectedIndex = 3
+
+            Case "4"c
+                cbCodeType.SelectedIndex = 4
+
+            Case "5"c
+                cbCodeType.SelectedIndex = 5
+
+            Case "r"c, "R"
+                btnReplaceCode.PerformClick()
+
+
+
+            Case "g"c, "G"c
+
+
+            Case "v"c, "V"c
+                LogMessage("Taste V wurde gedrückt.")
+
+            Case "p"c, "P"c
+                LogMessage("Taste P wurde gedrückt.")
+
+            Case "l"c, "L"c
+                LogMessage("Taste L wurde gedrückt.")
+
+        End Select
+
+
+    End Sub
+
+    Private Async Sub NarrowSelection_Click(sender As Object, e As EventArgs)
+
+        ' JavaScript-Code zum Hochhangeln der Selektion
+        Dim script As String = "
+    (function() {
+        var sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+            var range = sel.getRangeAt(0);
+            var container = range.commonAncestorContainer;
+
+            // Falls es ein Textknoten ist, nimm das übergeordnete Element
+            if (container.nodeType === 3) { 
+                container = container.parentNode; 
+            }
+
+            // Falls es schon ein Blockelement ist, noch weiter nach oben
+            if (container.parentElement) {
+                container = container.parentElement;
+            }
+
+            // Markiere das neue Element
+            var newRange = document.createRange();
+            newRange.selectNode(container);
+            sel.removeAllRanges();
+            sel.addRange(newRange);
+
+            return JSON.stringify(container.outerHTML); // Zur Überprüfung
+        }
+        return '';
+    })();"
+
+        ' Führe den JavaScript-Code aus
+        Dim resultJson As String = Await WebView.CoreWebView2.ExecuteScriptAsync(script)
+
+        ' Zeige im Log an, welches Element zuletzt selektiert wurde
+        Dim expandedSelection As String = JsonConvert.DeserializeObject(Of String)(resultJson)
+        If String.IsNullOrEmpty(expandedSelection) Then
+            LogMessage("Keine gültige Selektion gefunden.")
+        Else
+            LogMessage("Selektion erweitert.")
+        End If
+    End Sub
+
+    Private Sub file_done_Click(sender As Object, e As EventArgs) Handles file_done.Click
+
+        ' Stelle sicher, dass eine Datei ausgewählt wurde
+        If lbFiles.SelectedItem Is Nothing Then
+            LogMessage("Keine Datei ausgewählt.")
+            Return
+        End If
+
+        ' Ursprünglichen Dateipfad abrufen
+        Dim filepath As String = lbFiles.SelectedItem.ToString()
+        Dim directory As String = Path.GetDirectoryName(filepath)
+        Dim fileName As String = Path.GetFileName(filepath)
+        Dim doneFolder As String = Path.Combine(directory, "done")
+
+        ' Falls der Zielordner nicht existiert, erstelle ihn
+        If Not System.IO.Directory.Exists(doneFolder) Then
+            System.IO.Directory.CreateDirectory(doneFolder)
+        End If
+
+        ' Zielpfad für die verschobene Datei
+        Dim destinationPath As String = Path.Combine(doneFolder, fileName)
+
+        ' Falls die Datei bereits existiert, lösche sie
+        If File.Exists(destinationPath) Then
+            File.Delete(destinationPath)
+        End If
+
+        ' Datei verschieben
+        Try
+            File.Move(filepath, destinationPath)
+            LogMessage($"Datei verschoben nach: {destinationPath}")
+
+            ' Entferne Datei aus der ListBox
+            lbFiles.Items.Remove(filepath)
+        Catch ex As Exception
+            LogMessage($"Fehler beim Verschieben: {ex.Message}")
+        End Try
+
+    End Sub
+
+    Private Sub withSubs_CheckedChanged(sender As Object, e As EventArgs) Handles withSubs.CheckedChanged
+        LoadFilesFromDirectoryAsync(basepath.Text, withSubs.Checked)
     End Sub
 End Class
 

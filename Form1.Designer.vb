@@ -42,6 +42,8 @@ Partial Class Form1
         Me.replace_vbnet = New System.Windows.Forms.Button()
         Me.del_selected_element = New System.Windows.Forms.Button()
         Me.ExpandSelection = New System.Windows.Forms.Button()
+        Me.file_done = New System.Windows.Forms.Button()
+        Me.withSubs = New System.Windows.Forms.CheckBox()
         CType(Me.WebView, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.WebView_2, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
@@ -65,9 +67,9 @@ Partial Class Form1
         '
         'btnInsertScripts
         '
-        Me.btnInsertScripts.Location = New System.Drawing.Point(12, 454)
+        Me.btnInsertScripts.Location = New System.Drawing.Point(902, 674)
         Me.btnInsertScripts.Name = "btnInsertScripts"
-        Me.btnInsertScripts.Size = New System.Drawing.Size(102, 23)
+        Me.btnInsertScripts.Size = New System.Drawing.Size(102, 46)
         Me.btnInsertScripts.TabIndex = 2
         Me.btnInsertScripts.Text = "Insert script tag"
         Me.btnInsertScripts.UseVisualStyleBackColor = True
@@ -82,9 +84,9 @@ Partial Class Form1
         '
         'btnReplaceCode
         '
-        Me.btnReplaceCode.Location = New System.Drawing.Point(385, 452)
+        Me.btnReplaceCode.Location = New System.Drawing.Point(290, 452)
         Me.btnReplaceCode.Name = "btnReplaceCode"
-        Me.btnReplaceCode.Size = New System.Drawing.Size(102, 23)
+        Me.btnReplaceCode.Size = New System.Drawing.Size(197, 23)
         Me.btnReplaceCode.TabIndex = 5
         Me.btnReplaceCode.Text = "Replace code"
         Me.btnReplaceCode.UseVisualStyleBackColor = True
@@ -120,8 +122,10 @@ Partial Class Form1
         '
         'cbCodeType
         '
+        Me.cbCodeType.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest
+        Me.cbCodeType.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems
         Me.cbCodeType.FormattingEnabled = True
-        Me.cbCodeType.Location = New System.Drawing.Point(493, 454)
+        Me.cbCodeType.Location = New System.Drawing.Point(499, 454)
         Me.cbCodeType.Name = "cbCodeType"
         Me.cbCodeType.Size = New System.Drawing.Size(185, 21)
         Me.cbCodeType.TabIndex = 9
@@ -130,14 +134,14 @@ Partial Class Form1
         '
         Me.basepath.Location = New System.Drawing.Point(148, 428)
         Me.basepath.Name = "basepath"
-        Me.basepath.Size = New System.Drawing.Size(350, 20)
+        Me.basepath.Size = New System.Drawing.Size(304, 20)
         Me.basepath.TabIndex = 10
         '
         'ProgressBar1
         '
-        Me.ProgressBar1.Location = New System.Drawing.Point(504, 425)
+        Me.ProgressBar1.Location = New System.Drawing.Point(545, 428)
         Me.ProgressBar1.Name = "ProgressBar1"
-        Me.ProgressBar1.Size = New System.Drawing.Size(174, 23)
+        Me.ProgressBar1.Size = New System.Drawing.Size(139, 23)
         Me.ProgressBar1.TabIndex = 11
         '
         'WebView_2
@@ -153,9 +157,9 @@ Partial Class Form1
         '
         'vbopen
         '
-        Me.vbopen.Location = New System.Drawing.Point(120, 454)
+        Me.vbopen.Location = New System.Drawing.Point(12, 454)
         Me.vbopen.Name = "vbopen"
-        Me.vbopen.Size = New System.Drawing.Size(108, 23)
+        Me.vbopen.Size = New System.Drawing.Size(129, 23)
         Me.vbopen.TabIndex = 13
         Me.vbopen.Text = "in VS Code öffnen"
         Me.vbopen.UseVisualStyleBackColor = True
@@ -164,16 +168,16 @@ Partial Class Form1
         '
         Me.repace_simple.Location = New System.Drawing.Point(504, 674)
         Me.repace_simple.Name = "repace_simple"
-        Me.repace_simple.Size = New System.Drawing.Size(108, 23)
+        Me.repace_simple.Size = New System.Drawing.Size(108, 46)
         Me.repace_simple.TabIndex = 14
         Me.repace_simple.Text = "Platzhalter einfügen"
         Me.repace_simple.UseVisualStyleBackColor = True
         '
         'replace_placeholder
         '
-        Me.replace_placeholder.Location = New System.Drawing.Point(504, 703)
+        Me.replace_placeholder.Location = New System.Drawing.Point(504, 726)
         Me.replace_placeholder.Name = "replace_placeholder"
-        Me.replace_placeholder.Size = New System.Drawing.Size(108, 23)
+        Me.replace_placeholder.Size = New System.Drawing.Size(108, 46)
         Me.replace_placeholder.TabIndex = 15
         Me.replace_placeholder.Text = "Platzhalter ersetzen"
         Me.replace_placeholder.UseVisualStyleBackColor = True
@@ -190,16 +194,16 @@ Partial Class Form1
         '
         Me.replace_guixt.Location = New System.Drawing.Point(628, 674)
         Me.replace_guixt.Name = "replace_guixt"
-        Me.replace_guixt.Size = New System.Drawing.Size(121, 23)
+        Me.replace_guixt.Size = New System.Drawing.Size(121, 46)
         Me.replace_guixt.TabIndex = 17
         Me.replace_guixt.Text = "Replace GuiXT"
         Me.replace_guixt.UseVisualStyleBackColor = True
         '
         'replace_vbnet
         '
-        Me.replace_vbnet.Location = New System.Drawing.Point(628, 703)
+        Me.replace_vbnet.Location = New System.Drawing.Point(628, 726)
         Me.replace_vbnet.Name = "replace_vbnet"
-        Me.replace_vbnet.Size = New System.Drawing.Size(121, 23)
+        Me.replace_vbnet.Size = New System.Drawing.Size(121, 46)
         Me.replace_vbnet.TabIndex = 18
         Me.replace_vbnet.Text = "Replace VB.NET"
         Me.replace_vbnet.UseVisualStyleBackColor = True
@@ -208,25 +212,47 @@ Partial Class Form1
         '
         Me.del_selected_element.Location = New System.Drawing.Point(765, 674)
         Me.del_selected_element.Name = "del_selected_element"
-        Me.del_selected_element.Size = New System.Drawing.Size(164, 23)
+        Me.del_selected_element.Size = New System.Drawing.Size(131, 46)
         Me.del_selected_element.TabIndex = 19
         Me.del_selected_element.Text = "Delete selected lement"
         Me.del_selected_element.UseVisualStyleBackColor = True
         '
         'ExpandSelection
         '
-        Me.ExpandSelection.Location = New System.Drawing.Point(765, 703)
+        Me.ExpandSelection.Location = New System.Drawing.Point(765, 726)
         Me.ExpandSelection.Name = "ExpandSelection"
-        Me.ExpandSelection.Size = New System.Drawing.Size(164, 23)
+        Me.ExpandSelection.Size = New System.Drawing.Size(131, 46)
         Me.ExpandSelection.TabIndex = 20
         Me.ExpandSelection.Text = "Expand selection"
         Me.ExpandSelection.UseVisualStyleBackColor = True
+        '
+        'file_done
+        '
+        Me.file_done.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(192, Byte), Integer))
+        Me.file_done.Location = New System.Drawing.Point(148, 454)
+        Me.file_done.Name = "file_done"
+        Me.file_done.Size = New System.Drawing.Size(129, 23)
+        Me.file_done.TabIndex = 22
+        Me.file_done.Text = "Datei erledigt"
+        Me.file_done.UseVisualStyleBackColor = False
+        '
+        'withSubs
+        '
+        Me.withSubs.AutoSize = True
+        Me.withSubs.Location = New System.Drawing.Point(458, 432)
+        Me.withSubs.Name = "withSubs"
+        Me.withSubs.Size = New System.Drawing.Size(75, 17)
+        Me.withSubs.TabIndex = 23
+        Me.withSubs.Text = "Unterverz."
+        Me.withSubs.UseVisualStyleBackColor = True
         '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1784, 828)
+        Me.Controls.Add(Me.withSubs)
+        Me.Controls.Add(Me.file_done)
         Me.Controls.Add(Me.ExpandSelection)
         Me.Controls.Add(Me.del_selected_element)
         Me.Controls.Add(Me.replace_vbnet)
@@ -276,4 +302,6 @@ Partial Class Form1
     Friend WithEvents replace_vbnet As Button
     Friend WithEvents del_selected_element As Button
     Friend WithEvents ExpandSelection As Button
+    Friend WithEvents file_done As Button
+    Friend WithEvents withSubs As CheckBox
 End Class
