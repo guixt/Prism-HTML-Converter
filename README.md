@@ -1,88 +1,36 @@
-# **HTML Code Formatter & Highlighter Converter**  
+HTML Code Formatter for PrismJS
+Overview
+We created this tool to efficiently format and highlight code snippets on our website. Our documentation contains many code examples, including GuiXT, ABAP, and other languages that are not well-supported by existing syntax highlighters. To ensure consistent and readable formatting, we use PrismJS for syntax highlighting and needed a way to semi-automate the conversion of code within HTML files.
 
-## **Overview**  
-This Windows Forms application (built with VB.NET) is designed to streamline the process of modifying HTML files by enhancing code blocks with proper syntax highlighting. It supports the automatic replacement of existing formatted code (such as those generated with external tools like `hilite.me`) with a unified PrismJS-based syntax highlighter.
+This tool allows you to select code in an HTML preview and automatically convert it into properly formatted PrismJS syntax with line numbers and copy buttons.
 
-The tool allows users to:
-- **Automatically insert PrismJS script and stylesheets** into HTML files.
-- **Identify and replace preformatted code blocks**, even when they come from different sources.
-- **Select and replace code sections directly** from the WebView2 preview.
-- **Synchronize scrolling** between two WebView2 instances to maintain visual consistency.
-- **Keep track of modifications** with a built-in logging system.
+🔹 Key Features
+✔ Live HTML Preview – Select code directly in the integrated WebView2 browser
+✔ PrismJS Integration – Converts selected code into PrismJS-compatible HTML
+✔ Supports Multiple Languages – Works with GuiXT, ABAP, JavaScript, HTML, and VB.NET
+✔ Backup & Restore – Automatically creates backups before modifications
+✔ File Management – Move processed files to a "done" folder, restore previous versions, and delete files
+✔ Keyboard Shortcuts – Fast editing with configurable hotkeys
 
----
+🚀 How It Works
+Select an HTML file from the file list
+Highlight a code section in the preview window
+Click "Replace Code" to format the selection with PrismJS syntax
+Save & manage files – move completed files, restore backups, or delete unwanted content
+If a placeholder (<div name="prism_placeholder"></div>) exists, it can be replaced with formatted code from a text input.
 
-## **Features**  
+🛠 Installation & Setup
+Clone the repository:
+bash
+Kopieren
+Bearbeiten
+git clone https://github.com/your-repo-name.git
+Open the project in Visual Studio
+Ensure WebView2 is installed
+Run the application (F5)
 
-✅ **Batch Processing:** Load and modify multiple HTML files at once.  
-✅ **PrismJS Integration:** Automatically replaces old syntax-highlighted blocks with PrismJS-based formatting.  
-✅ **Smart Code Detection:** Supports structured replacements using different detection methods, including:
-  - `hilite.me` generated sections (by detecting the associated comment)
-  - User-selected code regions in the WebView2 preview  
-✅ **Backup System:** Creates `.old` backups before modifying files.  
-✅ **Real-time Preview:** See your modifications instantly in WebView2.  
-✅ **Scroll Synchronization:** Keeps two WebView2 instances aligned when scrolling.  
-✅ **Logging & Debugging:** Built-in log output to track changes and replacements.  
 
----
+💡 Summary
+This tool streamlines the process of formatting GuiXT, ABAP, and other scripts for PrismJS. It allows users to select code inside an HTML preview, format it properly, and save changes with backups—saving time and ensuring a consistent display across our website.
 
-## **How It Works**  
-
-1. **Select an HTML File:** Choose an HTML document from a directory.  
-2. **Preview the File:** The embedded WebView2 displays the content.  
-3. **Choose a Code Block:**  
-   - Select a code section directly in the preview.  
-   - If a `hilite.me` comment is detected, the tool will automatically find and replace the associated `<div>`.  
-4. **Apply the Replacement:**  
-   - The selected block is replaced with PrismJS-compatible HTML.  
-   - The `hilite.me` comment (if present) is removed to avoid duplicate replacements.  
-5. **Save & View:** The file is updated, and the changes are reflected in the preview.  
-
----
-
-## **Installation & Requirements**  
-
-### **Prerequisites**
-- Windows OS  
-- .NET Framework (4.8 or later)  
-- WebView2 Runtime installed  
-
-### **Setup**
-1. Clone this repository:  
-   ```sh
-   git clone https://github.com/yourusername/yourrepository.git
-   ```
-2. Open the project in **Visual Studio**.  
-3. Restore NuGet packages (e.g., HtmlAgilityPack, Newtonsoft.Json).  
-4. Compile and run the application.  
-
----
-
-## **Screenshots**  
-
-📌 *[Add some screenshots here for better understanding]*  
-
----
-
-## **Planned Features**  
-🔄 **Drag & Drop Support** – Quickly add HTML files by dragging them into the interface.  
-📂 **Directory Monitoring** – Watch a folder for new HTML files and process them automatically.  
-🌐 **Cloud Sync** – Option to sync processed files to a cloud storage service.  
-
----
-
-## **Contributing**  
-Contributions are welcome! Please follow these steps:  
-1. Fork the repository  
-2. Create a new branch (`feature-xyz`)  
-3. Commit your changes  
-4. Open a pull request  
-
----
-
-## **License**  
-This project is licensed under the MIT License – feel free to use and modify it!  
-
----
-
-Would you like me to customize anything further, such as adding installation instructions, example screenshots, or expanding on certain features? 😊
+Let me know if you'd like any refinements! 😊
