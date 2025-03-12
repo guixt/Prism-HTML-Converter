@@ -22,7 +22,7 @@ Public Class Form1
 
         LogMessage("Herzlich Willkommen!")
 
-        cbCodeType.Items.AddRange(New String() {"ABAP", "HTML", "JavaScript", "GuiXT", "VB.NET"})
+        cbCodeType.Items.AddRange(New String() {"ABAP", "HTML", "JavaScript", "GuiXT", "VB.NET", "VBScript"})
         If cbCodeType.Items.Count > 0 Then cbCodeType.SelectedIndex = 3
 
 
@@ -83,6 +83,9 @@ Public Class Form1
             WebView.Source = New Uri(filePath)
             WebView_2.Source = New Uri(filePath)
 
+
+
+
             Dim detectedEncoding As Encoding = EncodingDetector.DetectFileEncoding(filePath)
 
             encoding.Text = detectedEncoding.EncodingName
@@ -112,10 +115,11 @@ Public Class Form1
 
         Dim pattern As String = "(<body[^>]*>)"
         Dim replacement As String = "$1" & vbCrLf &
-            "<script type='text/javascript' src=""../js/prism.js""></script>" & vbCrLf &
-            "<script type='text/javascript' src=""../js/prism_guixt.js""></script>" & vbCrLf &
-            "<link rel=""stylesheet"" href=""../css/prism.css"">" & vbCrLf &
-            "<link rel=""stylesheet"" href=""../css/prism_guixt.css"">" & vbCrLf
+            "<script type='text/javascript' src='../js/polyfills-for-ie11.js' ></script>" & vbCrLf &
+            "<script type='text/javascript' src='../js/prism.js'></script>" & vbCrLf &
+            "<script type='text/javascript' src='../js/prism_guixt.js'></script>" & vbCrLf &
+            "<link rel='stylesheet' href='../css/prism.css'>" & vbCrLf &
+            "<link rel='stylesheet' href='../css/prism_guixt.css'>" & vbCrLf
         Dim newContent As String = Regex.Replace(content, pattern, replacement, RegexOptions.IgnoreCase)
         File.WriteAllText(filePath, newContent)
     End Sub
@@ -205,6 +209,13 @@ Public Class Form1
                          $"<button class=""copy-button"" onclick=""copyToClipboardPrism(this)"">{copyText}</button>" & vbCrLf &
                          "<pre class=""language-vbnet line-numbers""><code>"
                 suffix = "</code></pre>"
+
+            Case "vbscript"
+                prefix = "<span class=""language-title"">VBscript</span>" &
+                         $"<button class=""copy-button"" onclick=""copyToClipboardPrism(this)"">{copyText}</button>" & vbCrLf &
+                         "<pre class=""language-vba line-numbers""><code>"
+                suffix = "</code></pre>"
+
             Case Else
                 prefix = "<pre><code>"
                 suffix = "</code></pre>"
