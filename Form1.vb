@@ -25,6 +25,10 @@ Public Class Form1
         cbCodeType.Items.AddRange(New String() {"ABAP", "HTML", "JavaScript", "GuiXT", "VB.NET", "VBScript"})
         If cbCodeType.Items.Count > 0 Then cbCodeType.SelectedIndex = 3
 
+        ' Default language
+        selected_language.SelectedIndex = 0
+
+
 
 
     End Sub
@@ -261,7 +265,23 @@ Public Class Form1
 
         ' 2. Erzeuge den neuen PrismJS-Block basierend auf der Selektion:
         Dim language As String = cbCodeType.SelectedItem.ToString()
-        Dim newBlock As String = GetPrismFormattedHtml(language, selectionInfo.text, "Kopieren")
+
+        ' Text für Kopieren-Button abhängig von der ausgewählten Sprache
+        Dim selectedLangText As String = selected_language.SelectedItem.ToString()
+        Dim buttonText As String = ""
+
+        Select Case selectedLangText.ToLower()
+            Case "deutsch"
+                buttonText = "Kopieren"
+            Case "englisch"
+                buttonText = "Copy"
+            Case "französisch"
+                buttonText = "Copier"
+            Case Else
+                buttonText = "Kopieren" ' Standardwert, falls unbekannte Sprache
+        End Select
+
+        Dim newBlock As String = GetPrismFormattedHtml(language, selectionInfo.text, buttonText)
 
         ' 3. Serialisiere den neuen Block zur Übergabe in JavaScript:
         Dim newBlockJson As String = JsonConvert.SerializeObject(newBlock)
@@ -474,7 +494,24 @@ Public Class Form1
 
         ' 3. PrismJS-Code generieren
         Dim language As String = cbCodeType.SelectedItem.ToString()
-        Dim prismBlock As String = GetPrismFormattedHtml(language, userCode, "Kopieren")
+
+        ' Text für Kopieren-Button abhängig von der ausgewählten Sprache
+        Dim selectedLangText As String = selected_language.SelectedItem.ToString()
+        Dim buttonText As String = ""
+
+        Select Case selectedLangText.ToLower()
+            Case "deutsch"
+                buttonText = "Kopieren"
+            Case "englisch"
+                buttonText = "Copy"
+            Case "französisch"
+                buttonText = "Copier"
+            Case Else
+                buttonText = "Kopieren" ' Standardwert, falls unbekannte Sprache
+        End Select
+
+
+        Dim prismBlock As String = GetPrismFormattedHtml(language, userCode, buttonText)
 
         ' 4. Serialisieren für JavaScript
         Dim prismBlockJson As String = JsonConvert.SerializeObject(prismBlock)

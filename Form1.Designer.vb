@@ -44,6 +44,7 @@ Partial Class Form1
         Me.ExpandSelection = New System.Windows.Forms.Button()
         Me.file_done = New System.Windows.Forms.Button()
         Me.withSubs = New System.Windows.Forms.CheckBox()
+        Me.selected_language = New System.Windows.Forms.ComboBox()
         CType(Me.WebView, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.WebView_2, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
@@ -246,11 +247,23 @@ Partial Class Form1
         Me.withSubs.Text = "Unterverz."
         Me.withSubs.UseVisualStyleBackColor = True
         '
+        'selected_language
+        '
+        Me.selected_language.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest
+        Me.selected_language.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems
+        Me.selected_language.FormattingEnabled = True
+        Me.selected_language.Items.AddRange(New Object() {"deutsch", "englisch", "französisch"})
+        Me.selected_language.Location = New System.Drawing.Point(690, 454)
+        Me.selected_language.Name = "selected_language"
+        Me.selected_language.Size = New System.Drawing.Size(137, 21)
+        Me.selected_language.TabIndex = 24
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1784, 828)
+        Me.Controls.Add(Me.selected_language)
         Me.Controls.Add(Me.withSubs)
         Me.Controls.Add(Me.file_done)
         Me.Controls.Add(Me.ExpandSelection)
@@ -304,4 +317,5 @@ Partial Class Form1
     Friend WithEvents ExpandSelection As Button
     Friend WithEvents file_done As Button
     Friend WithEvents withSubs As CheckBox
+    Friend WithEvents selected_language As ComboBox
 End Class
